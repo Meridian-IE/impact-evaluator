@@ -3,8 +3,6 @@
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 pragma solidity ^0.8.19;
 
-
-
 contract ImpactEvaluator is AccessControl {
     struct Round {
         string[] measurementCids;
