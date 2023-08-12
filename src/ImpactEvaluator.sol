@@ -6,8 +6,8 @@ pragma solidity ^0.8.19;
 struct Round {
     string[] measurementCids;
     string[] measurementProviders;
-    address[] addresses;
-    uint[] scores;
+    address[] participantAddresses;
+    uint[] participantScores;
     bool scoresSubmitted;
 }
 
@@ -39,10 +39,6 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function advanceRound() private {
-        // TODO: storage or memory?
-        // Round storage round = rounds[rounds.length];
-        // Round storage round = Round(new Retrievable[](0), new address[](0), new uint[](0), false);
-        // Round storage round;
         Round memory round;
         rounds.push(round);
         emit RoundStart(rounds.length - 1);
@@ -51,7 +47,7 @@ contract ImpactEvaluator is AccessControl {
     function maybeAdvanceRound() private {
         // TODO: Define round advance logic. Base on tipset?
         bool advance = false;
-        if (advance || rounds.length == 0) {
+        if (advance) {
             advanceRound();
         }
     }
@@ -75,8 +71,8 @@ contract ImpactEvaluator is AccessControl {
         require(addresses.length == scores.length);
         Round memory round = rounds[roundIndex];
         require(!round.scoresSubmitted);
-        round.addresses = addresses;
-        round.scores = scores;
+        round.participantAddresses = addresses;
+        round.participantScores = scores;
         round.scoresSubmitted = true;
         rounds[roundIndex] = round;
         reward(addresses, scores);
