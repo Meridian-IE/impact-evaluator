@@ -40,7 +40,7 @@ The output will provide a list of private keys and addresses that can be used. A
 To deploy the contract on Anvil, run:
 
 ```bash
-forge create --rpc-url http://127.0.0.1:8545 --mnemonic "test test test test test test test test test test test junk" src/Measure.sol:Measure --constructor-args 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+forge create --rpc-url http://127.0.0.1:8545 --mnemonic "test test test test test test test test test test test junk" src/ImpactEvaluator.sol:ImpactEvaluator --constructor-args 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 ```
 
 ## Deployment
@@ -62,12 +62,12 @@ export MNEMONIC_PATH="{path to mnemonic secret file}"
 To deploy using a private key, run:
 
 ```bash
-forge create --rpc-url $RPC_URL --private-key <your_private_key> src/Measure.sol:Measure --constructor-args $ADMIN_ADDRESS
+forge create --rpc-url $RPC_URL --private-key <your_private_key> src/ImpactEvaluator.sol:ImpactEvaluator --constructor-args $ADMIN_ADDRESS
 ```
 
 To deploy using a local mnemonic secret, run:
 ```bash
-forge create --rpc-url $RPC_URL --mnemonic $MNEMONIC_PATH src/Measure.sol:Measure --constructor-args $ADMIN_ADDRESS
+forge create --rpc-url $RPC_URL --mnemonic $MNEMONIC_PATH src/ImpactEvaluator.sol:ImpactEvaluator --constructor-args $ADMIN_ADDRESS
 ```
 
 

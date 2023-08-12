@@ -49,6 +49,6 @@ jobs:
         uses: crytic/slither-action@v0.2.0
         id: slither
         with:
-          target: "src/Measure.sol"
+          target: "src/ImpactEvaluator.sol"
           fail-on: none
           solc-version: 0.8.21
