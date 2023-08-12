@@ -35,6 +35,11 @@ contract ImpactEvaluator is AccessControl {
         emit RoundStart(rounds.length - 1);
     }
 
+    function adminAdvanceRound() public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
+        advanceRound();
+    }
+
     function maybeAdvanceRound() private {
         // TODO: Define round advance logic. Base on tipset?
         bool advance = false;
@@ -66,5 +71,9 @@ contract ImpactEvaluator is AccessControl {
 
     function reward(address[] memory addresses, uint[] memory _scores) private {
         // PaymentsFactory.deploy(reserve, scores);
+    }
+
+    function currentRoundIndex() public view returns (uint) {
+        return rounds.length - 1;
     }
 }
