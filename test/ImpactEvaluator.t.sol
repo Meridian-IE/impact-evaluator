@@ -5,17 +5,16 @@ import "forge-std/Test.sol";
 import "../src/ImpactEvaluator.sol";
 
 contract ImpactEvaluatorTest is Test {
-    ImpactEvaluator public impactEvaluator;
     event RoundStart(uint roundIndex);
     event MeasurementAdded(string cid, string provider);
 
-    function setUp() public {
+    function test_AdvanceRound() public {
         address[] memory evaluators = new address[](1);
         evaluators[0] = address(0x1);
-        impactEvaluator = new ImpactEvaluator(address(this), evaluators);
-    }
-
-    function test_AdvanceRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            evaluators
+        );
         assertEq(impactEvaluator.currentRoundIndex(), 0);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
@@ -24,6 +23,12 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_AddMeasurement() public {
+        address[] memory evaluators = new address[](1);
+        evaluators[0] = address(0x1);
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            evaluators
+        );
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         assertEq(impactEvaluator.getRound(0).measurementProviders.length, 0);
         vm.expectEmit(false, false, false, true);
