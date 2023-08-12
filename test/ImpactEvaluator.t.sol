@@ -6,6 +6,7 @@ import "../src/ImpactEvaluator.sol";
 
 contract ImpactEvaluatorTest is Test {
     ImpactEvaluator public impactEvaluator;
+    event RoundStart(uint roundIndex);
 
     function setUp() public {
         address[] memory evaluators = new address[](1);
@@ -15,6 +16,8 @@ contract ImpactEvaluatorTest is Test {
 
     function test_AdvanceRound() public {
         assertEq(impactEvaluator.currentRoundIndex(), 0);
+        vm.expectEmit(false, false, false, true);
+        emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
