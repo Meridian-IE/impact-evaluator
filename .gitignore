@@ -1,0 +1,8 @@
+cache
+out
+
+## Local secrets file
+/secrets/**/**
+
+## Rust Target Files
+**/**/target

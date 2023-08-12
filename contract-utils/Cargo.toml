@@ -1,0 +1,14 @@
+[package]
+name = "contract-utils"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fevm-utils = { git = "https://github.com/filecoin-saturn/rs-fevm-utils", ref = "5c85000" }
+ethers = { version = "2", default-features = false, features = ["abigen", "ledger"] }
+contract-bindings = { path= "../contract-bindings" }
+tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread", "rt"] }
+once_cell = "1.17.1"
+assert_fs = "1.0.10"
