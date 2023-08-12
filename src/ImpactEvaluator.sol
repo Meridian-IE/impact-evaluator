@@ -11,10 +11,6 @@ struct Round {
     bool scoresSubmitted;
 }
 
-/**
- * @title Impact Evaluator Contract
- * @dev This contract evaluates impact of peers in a system.
- */
 contract ImpactEvaluator is AccessControl {
     Round[] public rounds;
     address[] public evaluators;
@@ -25,11 +21,6 @@ contract ImpactEvaluator is AccessControl {
     bytes32 public constant COMMITMENT_ROLE = keccak256("COMMITMENT_ROLE");
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    /**
-     * @dev Creates an impact evaluator contract
-     * @param admin The address of the factory admin
-     * @param _evaluators The addresses of the evaluators
-     **/
     constructor(address admin, address[] memory _evaluators) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(COMMITMENT_ROLE, admin);
@@ -52,11 +43,6 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    /**
-     * @dev Adds a measurement.
-     * @param cid CID of measurements submitted
-     * @param provider Where to retrieve the CID from
-     **/
     function addMeasurement(string memory cid, string memory provider) public {
         // require(hasRole(COMMITMENT_ROLE, msg.sender));
         rounds[rounds.length - 1].measurementCids.push(cid);
