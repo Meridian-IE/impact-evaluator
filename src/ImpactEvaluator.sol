@@ -3,26 +3,23 @@
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 pragma solidity ^0.8.19;
 
+struct Round {
+    string[] measurementCids;
+    string[] measurementProviders;
+    address[] addresses;
+    uint[] scores;
+    bool scoresSubmitted;
+}
+
 /**
  * @title Impact Evaluator Contract
  * @dev This contract evaluates impact of peers in a system.
  */
 contract ImpactEvaluator is AccessControl {
-    struct Measurement {
-        string cid;
-        string provider;
-    }
-
-    struct Round {
-        Measurement[] measurements;
-        mapping(address => int) scores;
-        bool scoresSubmitted;
-    }
-
     Round[] public rounds;
     address[] public evaluators;
 
-    event MeasurementAdded(Measurement measurement);
+    event MeasurementAdded(string cid, string provider);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant COMMITMENT_ROLE = keccak256("COMMITMENT_ROLE");
@@ -38,15 +35,24 @@ contract ImpactEvaluator is AccessControl {
         _grantRole(COMMITMENT_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
         evaluators = _evaluators;
-        maybeAdvanceRound();
+        advanceRound();
+    }
+
+    function advanceRound() private {
+        // TODO: storage or memory?
+        // Round storage round = rounds[rounds.length];
+        // Round storage round = Round(new Retrievable[](0), new address[](0), new uint[](0), false);
+        // Round storage round;
+        Round memory round;
+        rounds.push(round);
+        emit RoundStart(rounds.length - 1);
     }
 
     function maybeAdvanceRound() private {
         // TODO: Define round advance logic. Base on tipset?
         bool advance = false;
         if (advance || rounds.length == 0) {
-            Round storage round = rounds[rounds.length];
-            emit RoundStart(rounds.length - 1);
+            advanceRound();
         }
     }
 
@@ -57,25 +63,26 @@ contract ImpactEvaluator is AccessControl {
      **/
     function addMeasurement(string memory cid, string memory provider) public {
         // require(hasRole(COMMITMENT_ROLE, msg.sender));
-        Measurement memory measurement = Measurement(cid, provider);
-        rounds[rounds.length - 1].measurements.push(measurement);
-        emit MeasurementAdded(measurement);
+        rounds[rounds.length - 1].measurementCids.push(cid);
+        rounds[rounds.length - 1].measurementProviders.push(provider);
+        emit MeasurementAdded(cid, provider);
         maybeAdvanceRound();
     }
 
-    // TODO: Types containing (nested) mappings can only be parameters or return 
-    // variables of internal or library functions.
-    function setScores(uint roundIndex, mapping(address => uint) memory scores) public {
+    function setScores(uint roundIndex, address[] memory addresses, uint[] memory scores) public {
         require(hasRole(EVALUATE_ROLE, msg.sender));
         require(roundIndex == rounds.length - 2);
-        Round storage round = rounds[rounds.length - 2];
+        require(addresses.length == scores.length);
+        Round memory round = rounds[roundIndex];
         require(!round.scoresSubmitted);
+        round.addresses = addresses;
         round.scores = scores;
         round.scoresSubmitted = true;
-        reward(scores);
+        rounds[roundIndex] = round;
+        reward(addresses, scores);
     }
 
-    function reward(mapping(address => uint) memory scores) private {
+    function reward(address[] memory addresses, uint[] memory _scores) private {
         // PaymentsFactory.deploy(reserve, scores);
     }
 }
