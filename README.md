@@ -1,5 +1,5 @@
-# meridian-measure-contract
-[Meridian measure contract](https://pl-strflt.notion.site/Meridian-Design-Doc-03-Evaluation-dissected-52803c22ee564e2ab8a86756fffa2693?pvs=4)
+# impact-evaluator
+[Meridian Impact Evaluator](https://pl-strflt.notion.site/Meridian-Design-Doc-06-Decentralization-78c1158223df45a4bec4f162e0fcfc3d?pvs=4)
 
 ## Development
 
@@ -20,8 +20,8 @@ cargo install --path ./anvil --profile local --locked --force
 ##### Clone Repo and Install
 
 ```bash
-git clone https://github.com/meridian-ie/measure-contract.git
-cd measure-contract
+git clone https://github.com/meridian-ie/impact-evaluator.git
+cd impact-evaluator
 git submodule update --recursive
 forge test
 ```
