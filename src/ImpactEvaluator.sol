@@ -13,17 +13,15 @@ struct Round {
 
 contract ImpactEvaluator is AccessControl {
     Round[] public rounds;
-    address[] public evaluators;
 
     event MeasurementAdded(string cid, string provider);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, address[] memory _evaluators) {
+    constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        evaluators = _evaluators;
         advanceRound();
     }
 
