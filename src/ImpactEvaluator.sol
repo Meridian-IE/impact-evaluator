@@ -3,15 +3,17 @@
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 pragma solidity ^0.8.19;
 
-struct Round {
-    string[] measurementCids;
-    string[] measurementProviders;
-    address[] participantAddresses;
-    uint[] participantScores;
-    bool scoresSubmitted;
-}
+
 
 contract ImpactEvaluator is AccessControl {
+    struct Round {
+        string[] measurementCids;
+        string[] measurementProviders;
+        address[] participantAddresses;
+        uint[] participantScores;
+        bool scoresSubmitted;
+    }
+
     Round[] public rounds;
 
     event MeasurementAdded(string cid, string provider);
@@ -32,7 +34,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function adminAdvanceRound() public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         advanceRound();
     }
 
@@ -52,11 +54,14 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function setScores(uint roundIndex, address[] memory addresses, uint[] memory scores) public {
-        require(hasRole(EVALUATE_ROLE, msg.sender));
-        require(roundIndex == rounds.length - 2);
-        require(addresses.length == scores.length);
+        require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
+        require(roundIndex == rounds.length - 2, "Wrong round");
+        require(
+            addresses.length == scores.length,
+            "Addresses and scores length mismatch"
+        );
         Round memory round = rounds[roundIndex];
-        require(!round.scoresSubmitted);
+        require(!round.scoresSubmitted, "Scores already submitted");
         round.participantAddresses = addresses;
         round.participantScores = scores;
         round.scoresSubmitted = true;
