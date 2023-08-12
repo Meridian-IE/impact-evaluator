@@ -18,12 +18,10 @@ contract ImpactEvaluator is AccessControl {
     event MeasurementAdded(string cid, string provider);
     event RoundStart(uint roundIndex);
     
-    bytes32 public constant COMMITMENT_ROLE = keccak256("COMMITMENT_ROLE");
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
     constructor(address admin, address[] memory _evaluators) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
-        _grantRole(COMMITMENT_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
         evaluators = _evaluators;
         advanceRound();
@@ -49,7 +47,6 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function addMeasurement(string memory cid, string memory provider) public {
-        // require(hasRole(COMMITMENT_ROLE, msg.sender));
         rounds[rounds.length - 1].measurementCids.push(cid);
         rounds[rounds.length - 1].measurementProviders.push(provider);
         emit MeasurementAdded(cid, provider);
