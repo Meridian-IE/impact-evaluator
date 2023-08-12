@@ -51,7 +51,11 @@ contract ImpactEvaluator is AccessControl {
         maybeAdvanceRound();
     }
 
-    function setScores(uint roundIndex, address[] memory addresses, uint[] memory scores) public {
+    function setScores(
+        uint roundIndex,
+        address[] memory addresses,
+        uint[] memory scores
+    ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(roundIndex == rounds.length - 2, "Wrong round");
         require(

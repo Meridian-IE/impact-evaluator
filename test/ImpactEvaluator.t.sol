@@ -42,8 +42,14 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.grantRole(impactEvaluator.EVALUATE_ROLE(), address(this));
-        impactEvaluator.revokeRole(impactEvaluator.DEFAULT_ADMIN_ROLE(), address(this));
+        impactEvaluator.grantRole(
+            impactEvaluator.EVALUATE_ROLE(),
+            address(this)
+        );
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
         vm.expectRevert("Wrong round");
         impactEvaluator.setScores(1, new address[](0), new uint[](0));
         vm.expectRevert("Addresses and scores length mismatch");
