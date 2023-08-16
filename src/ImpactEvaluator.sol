@@ -6,7 +6,6 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         string[] measurementCids;
-        string[] measurementProviders;
         address[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
@@ -14,7 +13,7 @@ contract ImpactEvaluator is AccessControl {
 
     Round[] public rounds;
 
-    event MeasurementAdded(string cid, string provider);
+    event MeasurementAdded(string cid);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
@@ -44,10 +43,9 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function addMeasurement(string memory cid, string memory provider) public {
+    function addMeasurement(string memory cid) public {
         rounds[rounds.length - 1].measurementCids.push(cid);
-        rounds[rounds.length - 1].measurementProviders.push(provider);
-        emit MeasurementAdded(cid, provider);
+        emit MeasurementAdded(cid);
         maybeAdvanceRound();
     }
 
