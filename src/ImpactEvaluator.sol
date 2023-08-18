@@ -24,6 +24,8 @@ contract ImpactEvaluator is AccessControl {
         advanceRound();
     }
 
+    receive() payable external {}
+
     function advanceRound() private {
         Round memory round;
         rounds.push(round);
