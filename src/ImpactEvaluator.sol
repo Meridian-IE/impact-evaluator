@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
-        uint start;
+        uint end;
         string[] measurementCids;
         address[] participantAddresses;
         uint[] participantScores;
@@ -13,23 +13,23 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint roundLength;
+    uint nextRoundLength;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, uint _roundLength) {
+    constructor(address admin, uint _nextRoundLength) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        roundLength = _roundLength;
+        nextRoundLength = _nextRoundLength;
         advanceRound();
     }
 
     function advanceRound() private {
         Round memory round;
-        round.start = block.number;
+        round.end = block.number + nextRoundLength;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
@@ -40,10 +40,15 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundStart = rounds[currentRoundIndex()].start;
-        if (block.number - currentRoundStart >= roundLength) {
+        uint currentRoundEnd = rounds[currentRoundIndex()].end;
+        if (block.number >= currentRoundEnd) {
             advanceRound();
         }
+    }
+
+    function adminSetNextRoundLength(uint _nextRoundLength) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        nextRoundLength = _nextRoundLength;
     }
 
     function addMeasurement(string memory cid) public {
