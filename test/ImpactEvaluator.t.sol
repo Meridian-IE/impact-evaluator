@@ -30,7 +30,7 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresNotEvaluator() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an evaluator");
-        impactEvaluator.setScores(0, new address[](0), new uint[](0));
+        impactEvaluator.setScores(0, new address payable[](0), new uint[](0));
     }
 
     function test_SetScores() public {
@@ -45,12 +45,12 @@ contract ImpactEvaluatorTest is Test {
             address(this)
         );
         vm.expectRevert("Wrong round");
-        impactEvaluator.setScores(1, new address[](0), new uint[](0));
+        impactEvaluator.setScores(1, new address payable[](0), new uint[](0));
         vm.expectRevert("Addresses and scores length mismatch");
-        impactEvaluator.setScores(0, new address[](1), new uint[](0));
+        impactEvaluator.setScores(0, new address payable[](1), new uint[](0));
 
-        address[] memory addresses = new address[](1);
-        addresses[0] = address(0x1);
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(address(0x1));
         uint[] memory scores = new uint[](1);
         scores[0] = 1;
         impactEvaluator.setScores(0, addresses, scores);

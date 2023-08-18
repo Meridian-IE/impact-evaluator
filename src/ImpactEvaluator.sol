@@ -6,7 +6,7 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         string[] measurementCids;
-        address[] participantAddresses;
+        address payable[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
     }
@@ -51,7 +51,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setScores(
         uint roundIndex,
-        address[] memory addresses,
+        address payable[] memory addresses,
         uint[] memory scores
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
@@ -69,8 +69,14 @@ contract ImpactEvaluator is AccessControl {
         reward(addresses, scores);
     }
 
-    function reward(address[] memory addresses, uint[] memory _scores) private {
-        // PaymentsFactory.deploy(reserve, scores);
+    function reward(address payable[] memory addresses, uint[] memory scores) private {
+        // TODO: Account for gas costs
+        uint balance = address(this).balance;
+        for (uint i = 0; i < addresses.length; i++) {
+            address payable addr = addresses[i];
+            uint score = scores[i];
+            addr.transfer(score / 1000000 * balance);
+        }
     }
 
     function currentRoundIndex() public view returns (uint) {
