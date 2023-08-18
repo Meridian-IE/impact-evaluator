@@ -41,7 +41,7 @@ contract ImpactEvaluator is AccessControl {
 
     function maybeAdvanceRound() private {
         uint currentRoundStart = rounds[currentRoundIndex()].start;
-        if (block.number - currentRoundStart > roundLength) {
+        if (block.number - currentRoundStart >= roundLength) {
             advanceRound();
         }
     }
