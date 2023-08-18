@@ -22,6 +22,18 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
+    function test_AdminSetRoundLength() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000
+        );
+        assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
+        impactEvaluator.adminSetNextRoundLength(2000);
+        assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.getRound(1).end, block.number + 2000);
+    }
+
     function test_AddMeasurement() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(0x1),
