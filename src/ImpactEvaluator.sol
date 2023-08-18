@@ -29,6 +29,7 @@ contract ImpactEvaluator is AccessControl {
 
     function advanceRound() private {
         Round memory round;
+        round.start = block.number;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
