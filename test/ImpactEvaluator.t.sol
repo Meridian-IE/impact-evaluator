@@ -9,7 +9,10 @@ contract ImpactEvaluatorTest is Test {
     event MeasurementAdded(string cid, uint roundIndex);
 
     function test_AdvanceRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000
+        );
         assertEq(impactEvaluator.currentRoundIndex(), 0);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
@@ -18,7 +21,10 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_AddMeasurement() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            1000
+        );
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
@@ -28,13 +34,19 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_SetScoresNotEvaluator() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            1000
+        );
         vm.expectRevert("Not an evaluator");
         impactEvaluator.setScores(0, new address[](0), new uint[](0));
     }
 
     function test_SetScores() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000
+        );
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.grantRole(
             impactEvaluator.EVALUATE_ROLE(),
