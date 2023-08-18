@@ -50,10 +50,11 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, new address payable[](1), new uint[](0));
 
         address payable[] memory addresses = new address payable[](1);
-        addresses[0] = payable(address(this));
+        addresses[0] = payable(address(0x1));
         uint[] memory scores = new uint[](1);
         scores[0] = 1;
-        payable(address(impactEvaluator)).transfer(100);
+        vm.deal(payable(address(impactEvaluator)), 100);
+        // payable(address(impactEvaluator)).transfer(100);
         impactEvaluator.setScores(0, addresses, scores);
 
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
