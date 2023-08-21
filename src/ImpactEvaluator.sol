@@ -5,6 +5,7 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
+        uint start;
         string[] measurementCids;
         address[] participantAddresses;
         uint[] participantScores;
@@ -12,20 +13,23 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
+    uint roundLength;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin) {
+    constructor(address admin, uint _roundLength) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
+        roundLength = _roundLength;
         advanceRound();
     }
 
     function advanceRound() private {
         Round memory round;
+        round.start = block.number;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
@@ -36,9 +40,8 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        // TODO: Define round advance logic. Base on tipset?
-        bool advance = false;
-        if (advance) {
+        uint currentRoundStart = rounds[currentRoundIndex()].start;
+        if (block.number - currentRoundStart >= roundLength) {
             advanceRound();
         }
     }
