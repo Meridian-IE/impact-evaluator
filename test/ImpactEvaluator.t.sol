@@ -50,7 +50,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, new address payable[](1), new uint[](0));
 
         address payable[] memory addresses = new address payable[](1);
-        addresses[0] = payable(address(0x1));
+        addresses[0] = payable(vm.addr(1));
         uint[] memory scores = new uint[](1);
         scores[0] = 1;
         vm.deal(payable(address(impactEvaluator)), 100);
@@ -60,7 +60,7 @@ contract ImpactEvaluatorTest is Test {
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
         assertEq(round.participantAddresses.length, 1);
         assertEq(round.participantScores.length, 1);
-        assertEq(round.participantAddresses[0], address(0x1));
+        assertEq(round.participantAddresses[0], addresses[0]);
         assertEq(round.participantScores[0], 1);
         assertEq(round.scoresSubmitted, true);
 

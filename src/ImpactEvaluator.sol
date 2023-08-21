@@ -15,7 +15,7 @@ contract ImpactEvaluator is AccessControl {
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
-    
+
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
     constructor(address admin) {
@@ -24,7 +24,7 @@ contract ImpactEvaluator is AccessControl {
         advanceRound();
     }
 
-    receive() payable external {}
+    receive() external payable {}
 
     function advanceRound() private {
         Round memory round;
@@ -71,13 +71,16 @@ contract ImpactEvaluator is AccessControl {
         reward(addresses, scores);
     }
 
-    function reward(address payable[] memory addresses, uint[] memory scores) private {
+    function reward(
+        address payable[] memory addresses,
+        uint[] memory scores
+    ) private {
         // TODO: Account for gas costs
         uint balance = address(this).balance;
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            addr.transfer(score / 1000000 * balance);
+            addr.transfer((score / 1000000) * balance);
         }
     }
 
