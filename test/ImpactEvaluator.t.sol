@@ -9,8 +9,13 @@ contract ImpactEvaluatorTest is Test {
     event MeasurementAdded(string cid, uint roundIndex);
 
     function test_AdvanceRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000
+        );
         assertEq(impactEvaluator.currentRoundIndex(), 0);
+        assertNotEq(impactEvaluator.getRound(0).start, 0);
+        assertEq(impactEvaluator.getRound(0).start, block.number);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
@@ -18,7 +23,10 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_AddMeasurement() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            1000
+        );
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
@@ -28,13 +36,24 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_SetScoresNotEvaluator() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            1000
+        );
         vm.expectRevert("Not an evaluator");
-        impactEvaluator.setScores(0, new address payable[](0), new uint[](0));
+        impactEvaluator.setScores(
+            0,
+            new address payable[](0),
+            new uint[](0),
+            "no measurements"
+        );
     }
 
     function test_SetScores() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000
+        );
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.grantRole(
             impactEvaluator.EVALUATE_ROLE(),
@@ -45,16 +64,31 @@ contract ImpactEvaluatorTest is Test {
             address(this)
         );
         vm.expectRevert("Wrong round");
-        impactEvaluator.setScores(1, new address payable[](0), new uint[](0));
+        impactEvaluator.setScores(
+            1,
+            new address payable[](0),
+            new uint[](0),
+            "no measurements"
+        );
         vm.expectRevert("Addresses and scores length mismatch");
-        impactEvaluator.setScores(0, new address payable[](1), new uint[](0));
+        impactEvaluator.setScores(
+            0,
+            new address payable[](1),
+            new uint[](0),
+            "one peer"
+        );
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
         uint[] memory scores = new uint[](1);
         scores[0] = 1000000;
         vm.deal(payable(address(impactEvaluator)), 100);
-        impactEvaluator.setScores(0, addresses, scores);
+        impactEvaluator.setScores(
+            0,
+            addresses,
+            scores,
+            "1 task performed"
+        );
         assertEq(addresses[0].balance, 100);
 
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
@@ -62,9 +96,15 @@ contract ImpactEvaluatorTest is Test {
         assertEq(round.participantScores.length, 1);
         assertEq(round.participantAddresses[0], addresses[0]);
         assertEq(round.participantScores[0], scores[0]);
+        assertEq(round.summaryText, "1 task performed");
         assertEq(round.scoresSubmitted, true);
 
         vm.expectRevert("Scores already submitted");
-        impactEvaluator.setScores(0, addresses, scores);
+        impactEvaluator.setScores(
+            0,
+            addresses,
+            scores,
+            "1 task performed"
+        );
     }
 }

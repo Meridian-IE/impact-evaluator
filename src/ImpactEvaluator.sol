@@ -5,22 +5,26 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
+        uint start;
         string[] measurementCids;
         address payable[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
+        string summaryText;
     }
 
     Round[] public rounds;
+    uint roundLength;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin) {
+    constructor(address admin, uint _roundLength) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
+        roundLength = _roundLength;
         advanceRound();
     }
 
@@ -28,6 +32,7 @@ contract ImpactEvaluator is AccessControl {
 
     function advanceRound() private {
         Round memory round;
+        round.start = block.number;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
@@ -38,9 +43,8 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        // TODO: Define round advance logic. Base on tipset?
-        bool advance = false;
-        if (advance) {
+        uint currentRoundStart = rounds[currentRoundIndex()].start;
+        if (block.number - currentRoundStart >= roundLength) {
             advanceRound();
         }
     }
@@ -54,7 +58,8 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint[] memory scores
+        uint[] memory scores,
+        string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(roundIndex == rounds.length - 2, "Wrong round");
@@ -66,6 +71,7 @@ contract ImpactEvaluator is AccessControl {
         require(!round.scoresSubmitted, "Scores already submitted");
         round.participantAddresses = addresses;
         round.participantScores = scores;
+        round.summaryText = summaryText;
         round.scoresSubmitted = true;
         rounds[roundIndex] = round;
         reward(addresses, scores);
