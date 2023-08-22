@@ -14,17 +14,19 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint roundLength;
+    uint public roundLength;
+    uint public roundReward;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, uint _roundLength) {
+    constructor(address admin, uint _roundLength, uint _roundReward) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
         roundLength = _roundLength;
+        roundReward = _roundReward;
         advanceRound();
     }
 
@@ -47,6 +49,11 @@ contract ImpactEvaluator is AccessControl {
         if (block.number - currentRoundStart >= roundLength) {
             advanceRound();
         }
+    }
+
+    function adminSetRoundReward(uint _roundReward) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        roundReward = _roundReward;
     }
 
     function addMeasurement(string memory cid) public {
@@ -81,12 +88,11 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint[] memory scores
     ) private {
-        // TODO: Account for gas costs
-        uint balance = address(this).balance;
+        require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            addr.transfer((score / 1000000) * balance);
+            addr.transfer((score / 1000000) * roundReward);
         }
     }
 

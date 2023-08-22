@@ -11,7 +11,8 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(this),
-            1000
+            1000,
+            100
         );
         assertEq(impactEvaluator.currentRoundIndex(), 0);
         assertNotEq(impactEvaluator.getRound(0).start, 0);
@@ -22,10 +23,32 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
+    function test_AdminSetRoundReward() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(this),
+            1000,
+            100
+        );
+        assertEq(impactEvaluator.roundReward(), 100);
+        impactEvaluator.adminSetRoundReward(200);
+        assertEq(impactEvaluator.roundReward(), 200);
+    }
+
+    function test_AdminSetRoundRewardNotAdmin() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(0x1),
+            1000,
+            100
+        );
+        vm.expectRevert("Not an admin");
+        impactEvaluator.adminSetRoundReward(200);
+    }
+
     function test_AddMeasurement() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(0x1),
-            1000
+            1000,
+            100
         );
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
@@ -38,7 +61,8 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresNotEvaluator() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(0x1),
-            1000
+            1000,
+            100
         );
         vm.expectRevert("Not an evaluator");
         impactEvaluator.setScores(
@@ -52,7 +76,8 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(this),
-            1000
+            1000,
+            100
         );
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.grantRole(
