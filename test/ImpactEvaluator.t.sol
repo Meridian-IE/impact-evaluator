@@ -108,12 +108,7 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory scores = new uint[](1);
         scores[0] = 1000000;
         vm.deal(payable(address(impactEvaluator)), 100);
-        impactEvaluator.setScores(
-            0,
-            addresses,
-            scores,
-            "1 task performed"
-        );
+        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
         assertEq(addresses[0].balance, 100);
 
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
@@ -125,11 +120,6 @@ contract ImpactEvaluatorTest is Test {
         assertEq(round.scoresSubmitted, true);
 
         vm.expectRevert("Scores already submitted");
-        impactEvaluator.setScores(
-            0,
-            addresses,
-            scores,
-            "1 task performed"
-        );
+        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
     }
 }
