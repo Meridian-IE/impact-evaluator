@@ -10,6 +10,7 @@ contract ImpactEvaluator is AccessControl {
         address[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
+        string summaryText;
     }
 
     Round[] public rounds;
@@ -20,10 +21,10 @@ contract ImpactEvaluator is AccessControl {
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, uint _nextRoundLength) {
+    constructor(address admin, uint roundLength) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        nextRoundLength = _nextRoundLength;
+        nextRoundLength = roundLength;
         advanceRound();
     }
 
@@ -60,7 +61,8 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address[] memory addresses,
-        uint[] memory scores
+        uint[] memory scores,
+        string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(roundIndex == rounds.length - 2, "Wrong round");
@@ -72,6 +74,7 @@ contract ImpactEvaluator is AccessControl {
         require(!round.scoresSubmitted, "Scores already submitted");
         round.participantAddresses = addresses;
         round.participantScores = scores;
+        round.summaryText = summaryText;
         round.scoresSubmitted = true;
         rounds[roundIndex] = round;
         reward(addresses, scores);

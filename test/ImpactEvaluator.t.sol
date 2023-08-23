@@ -53,7 +53,12 @@ contract ImpactEvaluatorTest is Test {
             1000
         );
         vm.expectRevert("Not an evaluator");
-        impactEvaluator.setScores(0, new address[](0), new uint[](0));
+        impactEvaluator.setScores(
+            0,
+            new address[](0),
+            new uint[](0),
+            "no measurements"
+        );
     }
 
     function test_SetScores() public {
@@ -71,24 +76,45 @@ contract ImpactEvaluatorTest is Test {
             address(this)
         );
         vm.expectRevert("Wrong round");
-        impactEvaluator.setScores(1, new address[](0), new uint[](0));
+        impactEvaluator.setScores(
+            1,
+            new address[](0),
+            new uint[](0),
+            "no measurements"
+        );
         vm.expectRevert("Addresses and scores length mismatch");
-        impactEvaluator.setScores(0, new address[](1), new uint[](0));
+        impactEvaluator.setScores(
+            0,
+            new address[](1),
+            new uint[](0),
+            "one peer"
+        );
 
         address[] memory addresses = new address[](1);
         addresses[0] = address(0x1);
         uint[] memory scores = new uint[](1);
         scores[0] = 1;
-        impactEvaluator.setScores(0, addresses, scores);
+        impactEvaluator.setScores(
+            0,
+            addresses,
+            scores,
+            "1 task performed"
+        );
 
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
         assertEq(round.participantAddresses.length, 1);
         assertEq(round.participantScores.length, 1);
         assertEq(round.participantAddresses[0], address(0x1));
         assertEq(round.participantScores[0], 1);
+        assertEq(round.summaryText, "1 task performed");
         assertEq(round.scoresSubmitted, true);
 
         vm.expectRevert("Scores already submitted");
-        impactEvaluator.setScores(0, addresses, scores);
+        impactEvaluator.setScores(
+            0,
+            addresses,
+            scores,
+            "1 task performed"
+        );
     }
 }
