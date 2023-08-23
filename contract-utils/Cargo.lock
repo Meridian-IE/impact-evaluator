@@ -865,6 +865,8 @@ dependencies = [
  "contract-bindings",
  "ethers",
  "fevm-utils",
+ "num-bigint",
+ "num-traits",
  "once_cell",
  "tokio",
 ]

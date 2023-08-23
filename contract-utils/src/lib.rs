@@ -1,3 +1,4 @@
+pub mod gas_estimator;
 pub mod measure {
 
     use contract_bindings::measure::Measure;
