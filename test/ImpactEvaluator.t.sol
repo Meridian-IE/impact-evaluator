@@ -24,7 +24,8 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
-        impactEvaluator.addMeasurement("cid");
+        uint roundIndex = impactEvaluator.addMeasurement("cid");
+        assertEq(roundIndex, 0);
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 1);
         assertEq(impactEvaluator.getRound(0).measurementCids[0], "cid");
     }
