@@ -51,7 +51,7 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function adminSetRoundReward(uint _roundReward) public {
+    function setRoundReward(uint _roundReward) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         roundReward = _roundReward;
     }

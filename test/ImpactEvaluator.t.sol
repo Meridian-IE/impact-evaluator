@@ -23,25 +23,25 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
-    function test_AdminSetRoundReward() public {
+    function test_setRoundReward() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(this),
             1000,
             100
         );
         assertEq(impactEvaluator.roundReward(), 100);
-        impactEvaluator.adminSetRoundReward(200);
+        impactEvaluator.setRoundReward(200);
         assertEq(impactEvaluator.roundReward(), 200);
     }
 
-    function test_AdminSetRoundRewardNotAdmin() public {
+    function test_setRoundRewardNotAdmin() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(0x1),
             1000,
             100
         );
         vm.expectRevert("Not an admin");
-        impactEvaluator.adminSetRoundReward(200);
+        impactEvaluator.setRoundReward(200);
     }
 
     function test_AddMeasurement() public {
