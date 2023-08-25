@@ -28,16 +28,12 @@ contract ImpactEvaluator is AccessControl {
         advanceRound();
     }
 
-    function advanceRound() private {
+    function advanceRound() public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         Round memory round;
         round.start = block.number;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
-    }
-
-    function adminAdvanceRound() public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        advanceRound();
     }
 
     function maybeAdvanceRound() private {

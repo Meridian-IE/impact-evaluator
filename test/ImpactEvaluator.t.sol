@@ -18,7 +18,7 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.getRound(0).start, block.number);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
-        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.advanceRound();
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
@@ -54,7 +54,7 @@ contract ImpactEvaluatorTest is Test {
             address(this),
             1000
         );
-        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.advanceRound();
         impactEvaluator.grantRole(
             impactEvaluator.EVALUATE_ROLE(),
             address(this)
