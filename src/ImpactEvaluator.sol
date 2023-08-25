@@ -14,17 +14,16 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint roundLength;
+    uint roundLength = 10;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
     
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, uint _roundLength) {
+    constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        roundLength = _roundLength;
         advanceRound();
     }
 
