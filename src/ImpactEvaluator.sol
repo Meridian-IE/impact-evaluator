@@ -47,7 +47,7 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function adminSetNextRoundLength(uint _nextRoundLength) public {
+    function setNextRoundLength(uint _nextRoundLength) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         nextRoundLength = _nextRoundLength;
     }

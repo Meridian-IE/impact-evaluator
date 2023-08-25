@@ -28,7 +28,7 @@ contract ImpactEvaluatorTest is Test {
             1000
         );
         assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
-        impactEvaluator.adminSetNextRoundLength(2000);
+        impactEvaluator.setNextRoundLength(2000);
         assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.getRound(1).end, block.number + 2000);
