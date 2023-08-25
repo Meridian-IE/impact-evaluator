@@ -10,7 +10,7 @@ use std::{path::PathBuf, str::FromStr};
 const DEPLOY_METHOD: DeployMethod = DeployMethod::Mnemonic;
 const RPC_URL: &str = "https://api.calibration.node.glif.io/rpc/v1";
 const SECRETS_PATH: &str = "../secrets/mnemonic";
-const ABI_WRITE_PATH: &str = "../MeasureAbi.json";
+const ABI_WRITE_PATH: &str = "../Abi.json";
 
 const RETRIES: usize = 15;
 
