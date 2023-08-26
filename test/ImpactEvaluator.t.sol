@@ -95,12 +95,12 @@ contract ImpactEvaluatorTest is Test {
         );
     }
 
-    function test_MeasurementCountInCurrentRound() public {
+    function test_CurrentRoundMeasurementCount() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.measurementCountInCurrentRound(), 0);
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
         impactEvaluator.addMeasurement("cid");
-        assertEq(impactEvaluator.measurementCountInCurrentRound(), 1);
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 1);
         impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.measurementCountInCurrentRound(), 0);
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
     }
 }
