@@ -94,4 +94,13 @@ contract ImpactEvaluatorTest is Test {
             "1 task performed"
         );
     }
+
+    function test_MeasurementCountInCurrentRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.measurementCountInCurrentRound(), 0);
+        impactEvaluator.addMeasurement("cid");
+        assertEq(impactEvaluator.measurementCountInCurrentRound(), 1);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.measurementCountInCurrentRound(), 0);
+    }
 }

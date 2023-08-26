@@ -87,4 +87,8 @@ contract ImpactEvaluator is AccessControl {
     function getRound(uint index) public view returns (Round memory) {
         return rounds[index];
     }
+
+    function measurementCountInCurrentRound() public view returns (uint) {
+        return rounds[currentRoundIndex()].measurementCids.length;
+    }
 }
