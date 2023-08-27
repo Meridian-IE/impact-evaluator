@@ -1,5 +1,5 @@
-use contract_bindings::measure::MEASURE_ABI;
-use contract_utils::measure::{deploy_contract, DeployMethod};
+use contract_bindings::impact_evaluator::IMPACTEVALUATOR_ABI;
+use contract_utils::impact_evaluator::{deploy_contract, DeployMethod};
 use ethers::providers::Middleware;
 use ethers::utils::__serde_json::ser;
 use fevm_utils::{get_ledger_signing_provider, get_provider, get_wallet_signing_provider};
@@ -10,7 +10,7 @@ use std::{path::PathBuf, str::FromStr};
 const DEPLOY_METHOD: DeployMethod = DeployMethod::Mnemonic;
 const RPC_URL: &str = "https://api.calibration.node.glif.io/rpc/v1";
 const SECRETS_PATH: &str = "../secrets/mnemonic";
-const ABI_WRITE_PATH: &str = "../MeasureAbi.json";
+const ABI_WRITE_PATH: &str = "../Abi.json";
 
 const RETRIES: usize = 15;
 
@@ -18,7 +18,7 @@ const RETRIES: usize = 15;
 async fn main() {
     let provider = get_provider(&RPC_URL).unwrap();
     let chain_id = provider.get_chainid().await.unwrap();
-    let string_abi = ser::to_string(&MEASURE_ABI.clone()).unwrap();
+    let string_abi = ser::to_string(&IMPACTEVALUATOR_ABI.clone()).unwrap();
     write(&ABI_WRITE_PATH, string_abi).unwrap();
 
     match DEPLOY_METHOD {

@@ -1,6 +1,6 @@
-pub mod measure {
+pub mod impact_evaluator {
 
-    use contract_bindings::measure::Measure;
+    use contract_bindings::impact_evaluator::ImpactEvaluator;
     use ethers::{
         providers::{Http, Middleware, Provider},
         types::H160,
@@ -28,7 +28,7 @@ pub mod measure {
         println!("current gas price: {:#?}", gas_price);
         println!("using {} retries", retries);
 
-        let mut contract = Measure::deploy(client.clone(), address)?;
+        let mut contract = ImpactEvaluator::deploy(client.clone(), address)?;
         let tx = contract.deployer.tx.clone();
         set_tx_gas(
             &mut contract.deployer.tx,

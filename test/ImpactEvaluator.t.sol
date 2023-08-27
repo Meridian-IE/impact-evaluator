@@ -9,49 +9,37 @@ contract ImpactEvaluatorTest is Test {
     event MeasurementAdded(string cid, uint roundIndex);
 
     function test_AdvanceRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(this),
-            1000
-        );
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        assertNotEq(impactEvaluator.getRound(0).end, 0);
-        assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
-    function test_AdminSetRoundLength() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(this),
-            1000
-        );
-        assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
-        impactEvaluator.setNextRoundLength(2000);
-        assertEq(impactEvaluator.getRound(0).end, block.number + 1000);
+    function test_SetNextRoundLength() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
+        impactEvaluator.setNextRoundLength(20);
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
         impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.getRound(1).end, block.number + 2000);
+        assertEq(impactEvaluator.getRound(1).end, block.number + 20);
     }
 
-    function test_AddMeasurement() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(0x1),
-            1000
-        );
+    function test_AddMeasurements() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
-        impactEvaluator.addMeasurement("cid");
+        uint roundIndex = impactEvaluator.addMeasurements("cid");
+        assertEq(roundIndex, 0);
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 1);
         assertEq(impactEvaluator.getRound(0).measurementCids[0], "cid");
     }
 
     function test_SetScoresNotEvaluator() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(0x1),
-            1000
-        );
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an evaluator");
         impactEvaluator.setScores(
             0,
@@ -62,10 +50,7 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_SetScores() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(this),
-            1000
-        );
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.grantRole(
             impactEvaluator.EVALUATE_ROLE(),
@@ -116,5 +101,14 @@ contract ImpactEvaluatorTest is Test {
             scores,
             "1 task performed"
         );
+    }
+
+    function test_CurrentRoundMeasurementCount() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
+        impactEvaluator.addMeasurements("cid");
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 1);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
     }
 }

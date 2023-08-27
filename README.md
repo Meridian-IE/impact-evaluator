@@ -81,7 +81,7 @@ forge bind  --crate-name contract-bindings -b ./contract-bindings
 ```
 This will create new bindings with the modified contracts.
 
-Deployment can then proceed either with a locally stored mnemonic or a connected ethereum ledger wallet. To use with a mnemonic, create a `secrets/mnemonic.txt` file in the root directory.
+Deployment can then proceed either with a locally stored mnemonic or a connected ethereum ledger wallet. To use with a mnemonic, create a `secrets/mnemonic` file in the root directory.
 
 To deploy, run:
 ```bash
