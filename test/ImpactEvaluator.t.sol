@@ -19,12 +19,12 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
-    function test_AddMeasurement() public {
+    function test_AddMeasurements() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
-        uint roundIndex = impactEvaluator.addMeasurement("cid");
+        uint roundIndex = impactEvaluator.addMeasurements("cid");
         assertEq(roundIndex, 0);
         assertEq(impactEvaluator.getRound(0).measurementCids.length, 1);
         assertEq(impactEvaluator.getRound(0).measurementCids[0], "cid");
@@ -98,7 +98,7 @@ contract ImpactEvaluatorTest is Test {
     function test_CurrentRoundMeasurementCount() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
-        impactEvaluator.addMeasurement("cid");
+        impactEvaluator.addMeasurements("cid");
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
