@@ -1,6 +1,6 @@
 use assert_fs::fixture::FileWriteStr;
 use assert_fs::NamedTempFile;
-use contract_utils::measure::deploy_contract;
+use contract_utils::impact_evaluator::deploy_contract;
 use once_cell::sync::Lazy;
 use std::fs::read_to_string;
 use std::sync::Mutex;

@@ -14,19 +14,17 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint public roundLength;
-    uint public roundReward;
+    uint public roundLength = 10;
+    uint public roundReward = 100;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
-    constructor(address admin, uint _roundLength, uint _roundReward) {
+    constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        roundLength = _roundLength;
-        roundReward = _roundReward;
         advanceRound();
     }
 
@@ -56,10 +54,12 @@ contract ImpactEvaluator is AccessControl {
         roundReward = _roundReward;
     }
 
-    function addMeasurement(string memory cid) public {
-        rounds[currentRoundIndex()].measurementCids.push(cid);
-        emit MeasurementAdded(cid, currentRoundIndex());
+    function addMeasurements(string memory cid) public returns (uint) {
+        uint roundIndex = currentRoundIndex();
+        rounds[roundIndex].measurementCids.push(cid);
+        emit MeasurementAdded(cid, roundIndex);
         maybeAdvanceRound();
+        return roundIndex;
     }
 
     function setScores(
@@ -69,7 +69,7 @@ contract ImpactEvaluator is AccessControl {
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
-        require(roundIndex == rounds.length - 2, "Wrong round");
+        require(roundIndex <= rounds.length - 2, "Wrong round");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
@@ -102,5 +102,9 @@ contract ImpactEvaluator is AccessControl {
 
     function getRound(uint index) public view returns (Round memory) {
         return rounds[index];
+    }
+
+    function currentRoundMeasurementCount() public view returns (uint) {
+        return rounds[currentRoundIndex()].measurementCids.length;
     }
 }
