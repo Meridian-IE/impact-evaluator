@@ -14,7 +14,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint roundLength = 10;
+    uint public roundLength = 10;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
