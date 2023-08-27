@@ -92,7 +92,7 @@ contract ImpactEvaluator is AccessControl {
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            addr.transfer((score / 1000000) * roundReward);
+            addr.transfer((score / 1000000000000000) * roundReward);
         }
     }
 
