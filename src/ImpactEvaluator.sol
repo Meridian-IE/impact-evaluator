@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
-        uint start;
+        uint end;
         string[] measurementCids;
         address payable[] participantAddresses;
         uint[] participantScores;
@@ -14,7 +14,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     Round[] public rounds;
-    uint public roundLength = 10;
+    uint public nextRoundLength = 10;
     uint public roundReward = 100;
 
     event MeasurementAdded(string cid, uint roundIndex);
@@ -32,7 +32,7 @@ contract ImpactEvaluator is AccessControl {
 
     function advanceRound() private {
         Round memory round;
-        round.start = block.number;
+        round.end = block.number + nextRoundLength;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
@@ -43,10 +43,15 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundStart = rounds[currentRoundIndex()].start;
-        if (block.number - currentRoundStart >= roundLength) {
+        uint currentRoundEnd = rounds[currentRoundIndex()].end;
+        if (block.number >= currentRoundEnd) {
             advanceRound();
         }
+    }
+
+    function setNextRoundLength(uint _nextRoundLength) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        nextRoundLength = _nextRoundLength;
     }
 
     function setRoundReward(uint _roundReward) public {

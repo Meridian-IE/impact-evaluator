@@ -11,12 +11,20 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        assertNotEq(impactEvaluator.getRound(0).start, 0);
-        assertEq(impactEvaluator.getRound(0).start, block.number);
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundIndex(), 1);
+    }
+
+    function test_SetNextRoundLength() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
+        impactEvaluator.setNextRoundLength(20);
+        assertEq(impactEvaluator.getRound(0).end, block.number + 10);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.getRound(1).end, block.number + 20);
     }
 
     function test_setRoundReward() public {
