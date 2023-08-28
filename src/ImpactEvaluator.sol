@@ -7,7 +7,7 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint start;
         string[] measurementCids;
-        address[] participantAddresses;
+        address payable[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
         string summaryText;
@@ -15,10 +15,11 @@ contract ImpactEvaluator is AccessControl {
 
     Round[] public rounds;
     uint public roundLength = 10;
+    uint public roundReward = 100;
 
     event MeasurementAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
-    
+
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
     constructor(address admin) {
@@ -26,6 +27,8 @@ contract ImpactEvaluator is AccessControl {
         _grantRole(EVALUATE_ROLE, admin);
         advanceRound();
     }
+
+    receive() external payable {}
 
     function advanceRound() private {
         Round memory round;
@@ -46,6 +49,11 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
+    function setRoundReward(uint _roundReward) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        roundReward = _roundReward;
+    }
+
     function addMeasurements(string memory cid) public returns (uint) {
         uint roundIndex = currentRoundIndex();
         rounds[roundIndex].measurementCids.push(cid);
@@ -56,7 +64,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setScores(
         uint roundIndex,
-        address[] memory addresses,
+        address payable[] memory addresses,
         uint[] memory scores,
         string memory summaryText
     ) public {
@@ -76,8 +84,16 @@ contract ImpactEvaluator is AccessControl {
         reward(addresses, scores);
     }
 
-    function reward(address[] memory addresses, uint[] memory _scores) private {
-        // PaymentsFactory.deploy(reserve, scores);
+    function reward(
+        address payable[] memory addresses,
+        uint[] memory scores
+    ) private {
+        require(address(this).balance >= roundReward, "Not enough funds");
+        for (uint i = 0; i < addresses.length; i++) {
+            address payable addr = addresses[i];
+            uint score = scores[i];
+            addr.transfer((score / 1000000000000000) * roundReward);
+        }
     }
 
     function currentRoundIndex() public view returns (uint) {
