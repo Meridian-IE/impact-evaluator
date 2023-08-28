@@ -22,7 +22,7 @@ cargo install --path ./anvil --profile local --locked --force
 ```bash
 git clone https://github.com/meridian-ie/impact-evaluator.git
 cd impact-evaluator
-git submodule update --recursive
+git submodule update --init --recursive
 forge test
 ```
 
