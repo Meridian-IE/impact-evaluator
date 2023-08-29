@@ -30,7 +30,7 @@
 
 ## Events
 
-### `MeasurementAdded(string cid, uint roundIndex)`
+### `MeasurementsAdded(string cid, uint roundIndex)`
 ### `RoundStart(uint roundIndex)`
 
 ## Structs

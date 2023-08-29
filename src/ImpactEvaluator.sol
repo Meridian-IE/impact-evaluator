@@ -17,7 +17,7 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100;
 
-    event MeasurementAdded(string cid, uint roundIndex);
+    event MeasurementsAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
@@ -62,7 +62,7 @@ contract ImpactEvaluator is AccessControl {
     function addMeasurements(string memory cid) public returns (uint) {
         uint roundIndex = currentRoundIndex();
         rounds[roundIndex].measurementsCids.push(cid);
-        emit MeasurementAdded(cid, roundIndex);
+        emit MeasurementsAdded(cid, roundIndex);
         maybeAdvanceRound();
         return roundIndex;
     }

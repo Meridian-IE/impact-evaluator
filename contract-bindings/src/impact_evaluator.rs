@@ -498,10 +498,10 @@ pub mod impact_evaluator {
             ]),
             events: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("MeasurementAdded"),
+                    ::std::borrow::ToOwned::to_owned("MeasurementsAdded"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Event {
-                            name: ::std::borrow::ToOwned::to_owned("MeasurementAdded"),
+                            name: ::std::borrow::ToOwned::to_owned("MeasurementsAdded"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::EventParam {
                                     name: ::std::borrow::ToOwned::to_owned("cid"),
@@ -909,13 +909,13 @@ pub mod impact_evaluator {
                 .method_hash([1, 255, 201, 167], interface_id)
                 .expect("method not found (this should never happen)")
         }
-        ///Gets the contract's `MeasurementAdded` event
+        ///Gets the contract's `MeasurementsAdded` event
         pub fn measurement_added_filter(
             &self,
         ) -> ::ethers::contract::builders::Event<
             ::std::sync::Arc<M>,
             M,
-            MeasurementAddedFilter,
+            MeasurementsAddedFilter,
         > {
             self.0.event()
         }
@@ -1114,8 +1114,8 @@ pub mod impact_evaluator {
         Eq,
         Hash
     )]
-    #[ethevent(name = "MeasurementAdded", abi = "MeasurementAdded(string,uint256)")]
-    pub struct MeasurementAddedFilter {
+    #[ethevent(name = "MeasurementsAdded", abi = "MeasurementsAdded(string,uint256)")]
+    pub struct MeasurementsAddedFilter {
         pub cid: ::std::string::String,
         pub round_index: ::ethers::core::types::U256,
     }
@@ -1196,7 +1196,7 @@ pub mod impact_evaluator {
     ///Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum ImpactEvaluatorEvents {
-        MeasurementAddedFilter(MeasurementAddedFilter),
+        MeasurementsAddedFilter(MeasurementsAddedFilter),
         RoleAdminChangedFilter(RoleAdminChangedFilter),
         RoleGrantedFilter(RoleGrantedFilter),
         RoleRevokedFilter(RoleRevokedFilter),
@@ -1206,8 +1206,8 @@ pub mod impact_evaluator {
         fn decode_log(
             log: &::ethers::core::abi::RawLog,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
-            if let Ok(decoded) = MeasurementAddedFilter::decode_log(log) {
-                return Ok(ImpactEvaluatorEvents::MeasurementAddedFilter(decoded));
+            if let Ok(decoded) = MeasurementsAddedFilter::decode_log(log) {
+                return Ok(ImpactEvaluatorEvents::MeasurementsAddedFilter(decoded));
             }
             if let Ok(decoded) = RoleAdminChangedFilter::decode_log(log) {
                 return Ok(ImpactEvaluatorEvents::RoleAdminChangedFilter(decoded));
@@ -1227,7 +1227,7 @@ pub mod impact_evaluator {
     impl ::core::fmt::Display for ImpactEvaluatorEvents {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::MeasurementAddedFilter(element) => {
+                Self::MeasurementsAddedFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::RoleAdminChangedFilter(element) => {
@@ -1239,9 +1239,9 @@ pub mod impact_evaluator {
             }
         }
     }
-    impl ::core::convert::From<MeasurementAddedFilter> for ImpactEvaluatorEvents {
-        fn from(value: MeasurementAddedFilter) -> Self {
-            Self::MeasurementAddedFilter(value)
+    impl ::core::convert::From<MeasurementsAddedFilter> for ImpactEvaluatorEvents {
+        fn from(value: MeasurementsAddedFilter) -> Self {
+            Self::MeasurementsAddedFilter(value)
         }
     }
     impl ::core::convert::From<RoleAdminChangedFilter> for ImpactEvaluatorEvents {
