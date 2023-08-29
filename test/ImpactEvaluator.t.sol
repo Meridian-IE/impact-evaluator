@@ -42,13 +42,13 @@ contract ImpactEvaluatorTest is Test {
 
     function test_AddMeasurements() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
-        assertEq(impactEvaluator.getRound(0).measurementCids.length, 0);
+        assertEq(impactEvaluator.getRound(0).measurementsCids.length, 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementAdded("cid", 0);
         uint roundIndex = impactEvaluator.addMeasurements("cid");
         assertEq(roundIndex, 0);
-        assertEq(impactEvaluator.getRound(0).measurementCids.length, 1);
-        assertEq(impactEvaluator.getRound(0).measurementCids[0], "cid");
+        assertEq(impactEvaluator.getRound(0).measurementsCids.length, 1);
+        assertEq(impactEvaluator.getRound(0).measurementsCids[0], "cid");
     }
 
     function test_SetScoresNotEvaluator() public {

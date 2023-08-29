@@ -6,7 +6,7 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
-        string[] measurementCids;
+        string[] measurementsCids;
         address payable[] participantAddresses;
         uint[] participantScores;
         bool scoresSubmitted;
@@ -61,7 +61,7 @@ contract ImpactEvaluator is AccessControl {
 
     function addMeasurements(string memory cid) public returns (uint) {
         uint roundIndex = currentRoundIndex();
-        rounds[roundIndex].measurementCids.push(cid);
+        rounds[roundIndex].measurementsCids.push(cid);
         emit MeasurementAdded(cid, roundIndex);
         maybeAdvanceRound();
         return roundIndex;
@@ -110,6 +110,6 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function currentRoundMeasurementCount() public view returns (uint) {
-        return rounds[currentRoundIndex()].measurementCids.length;
+        return rounds[currentRoundIndex()].measurementsCids.length;
     }
 }
