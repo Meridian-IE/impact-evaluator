@@ -1,6 +1,42 @@
 # impact-evaluator
 [Meridian Impact Evaluator](https://pl-strflt.notion.site/Meridian-Design-Doc-06-Decentralization-78c1158223df45a4bec4f162e0fcfc3d?pvs=4)
 
+## Public functions
+
+### `.addMeasurements(string cid) -> uint`
+
+## Evaluator functions
+
+### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores, string summaryText)`
+
+## Admin functions
+
+### `.adminAdvanceRound()`
+### `.setNextRoundLength(uint nextRoundLength)`
+### `.setRoundReward(uint roundReward)`
+
+## Getters / Views
+
+### `.currentRoundIndex() -> uint`
+### `.getRound(uint index) -> Round`
+### `.currentRoundMeasurementCount() -> uint`
+### `.rounds()`
+### `.nextRoundLength()`
+### `.roundReward()`
+
+## Roles
+
+### `.EVALUATE_ROLE()`
+
+## Events
+
+### `MeasurementAdded(string cid, uint roundIndex)`
+### `RoundStart(uint roundIndex)`
+
+## Structs
+
+### `Round`
+
 ## Development
 
 This repo requires Rust and Cargo, which can be installed from [here](https://doc.rust-lang.org/book/ch01-01-installation.html)
