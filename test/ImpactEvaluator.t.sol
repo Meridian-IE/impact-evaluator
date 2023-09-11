@@ -108,6 +108,23 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores, "1 task performed");
     }
 
+    function test_SetScoresEmptyRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.grantRole(
+            impactEvaluator.EVALUATE_ROLE(),
+            address(this)
+        );
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        address payable[] memory addresses = new address payable[](0);
+        uint[] memory scores = new uint[](0);
+        impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
+    }
+
     function test_CurrentRoundMeasurementCount() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
