@@ -7,6 +7,7 @@ import "../src/ImpactEvaluator.sol";
 contract ImpactEvaluatorTest is Test {
     event RoundStart(uint roundIndex);
     event MeasurementsAdded(string cid, uint roundIndex);
+    event Transfer(address indexed to, uint256 amount);
 
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
@@ -93,6 +94,8 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory scores = new uint[](1);
         scores[0] = 1000000000000000;
         vm.deal(payable(address(impactEvaluator)), 100);
+        vm.expectEmit(false, false, false, true);
+        emit Transfer(addresses[0], 100);
         impactEvaluator.setScores(0, addresses, scores, "1 task performed");
         assertEq(addresses[0].balance, 100);
 

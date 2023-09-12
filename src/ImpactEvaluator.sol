@@ -19,6 +19,8 @@ contract ImpactEvaluator is AccessControl {
 
     event MeasurementsAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
+    event Transfer(address indexed to, uint256 amount);
+    event TransferFailed(address indexed to, uint256 amount);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -99,7 +101,12 @@ contract ImpactEvaluator is AccessControl {
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            addr.transfer((score / 1000000000000000) * roundReward);
+            uint256 amount = (score / 1000000000000000) * roundReward;
+            if (addr.send(amount)) {
+                emit Transfer(addr, amount);
+            } else {
+                emit TransferFailed(addr, amount);
+            }
         }
     }
 
