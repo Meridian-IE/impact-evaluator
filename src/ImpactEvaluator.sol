@@ -11,6 +11,7 @@ contract ImpactEvaluator is AccessControl {
         uint[] participantScores;
         bool scoresSubmitted;
         string summaryText;
+        bool exists;
     }
 
     Round[] public rounds;
@@ -34,10 +35,11 @@ contract ImpactEvaluator is AccessControl {
     function advanceRound() private {
         Round memory round;
         round.end = block.number + nextRoundLength;
+        round.exists = true;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
         if (rounds.length > maxStoredRounds) {
-            
+            delete rounds[rounds.length - maxStoredRounds - 1];
         }
     }
 

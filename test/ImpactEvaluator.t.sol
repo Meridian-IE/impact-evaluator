@@ -18,6 +18,15 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
+    function test_AdvanceRoundCleanup() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.setMaxStoredRounds(1);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.currentRoundIndex(), 1);
+        assertEq(impactEvaluator.getRound(0).exists, false);
+        assertEq(impactEvaluator.getRound(1).exists, true);
+    }
+
     function test_SetNextRoundLength() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.getRound(0).end, block.number + 10);
