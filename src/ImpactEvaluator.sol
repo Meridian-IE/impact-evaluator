@@ -16,6 +16,7 @@ contract ImpactEvaluator is AccessControl {
     Round[] public rounds;
     uint public nextRoundLength = 10;
     uint public roundReward = 100;
+    uint public maxStoredRounds = 1000;
 
     event MeasurementsAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
@@ -35,6 +36,9 @@ contract ImpactEvaluator is AccessControl {
         round.end = block.number + nextRoundLength;
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
+        if (rounds.length > maxStoredRounds) {
+            
+        }
     }
 
     function adminAdvanceRound() public {
@@ -57,6 +61,11 @@ contract ImpactEvaluator is AccessControl {
     function setRoundReward(uint _roundReward) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         roundReward = _roundReward;
+    }
+
+    function setMaxStoredRounds(uint _maxStoredRounds) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        maxStoredRounds = _maxStoredRounds;
     }
 
     function addMeasurements(string memory cid) public returns (uint) {
