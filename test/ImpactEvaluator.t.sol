@@ -25,6 +25,10 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundIndex(), 1);
         assertEq(impactEvaluator.getRound(0).exists, false);
         assertEq(impactEvaluator.getRound(1).exists, true);
+        impactEvaluator.setMaxStoredRounds(1000);
+        impactEvaluator.adminAdvanceRound();
+        assertEq(impactEvaluator.getRound(0).exists, false);
+        assertEq(impactEvaluator.getRound(1).exists, true);
     }
 
     function test_SetNextRoundLength() public {
