@@ -80,14 +80,15 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(!rounds[roundIndex].scoresSubmitted, "Scores already submitted");
+        Round storage round = rounds[roundIndex];
+        require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
             address addr = addresses[i];
             uint score = scores[i];
-            rounds[roundIndex].scores[addr] = score;
+            round.scores[addr] = score;
         }
-        rounds[roundIndex].summaryText = summaryText;
-        rounds[roundIndex].scoresSubmitted = true;
+        round.summaryText = summaryText;
+        round.scoresSubmitted = true;
         if (scores.length > 0) {
             reward(addresses, scores);
         }
