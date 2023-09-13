@@ -39,6 +39,7 @@ contract ImpactEvaluator is AccessControl {
         rounds.push(round);
         emit RoundStart(currentRoundIndex());
         if (rounds.length > maxStoredRounds) {
+            // TODO: protect against over/underflow
             delete rounds[rounds.length - maxStoredRounds - 1];
         }
     }
