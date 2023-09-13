@@ -49,6 +49,7 @@ We recommend you install it from source:
 ```bash
 git clone https://github.com/foundry-rs/foundry
 cd foundry
+git checkout 9a4bb7f5
 # install cast + forge
 cargo install --path ./cli --profile local --bins --locked --force
 # install anvil
