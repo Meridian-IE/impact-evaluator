@@ -19,8 +19,9 @@ contract ImpactEvaluator is AccessControl {
     // public
     struct LinkedRound {
         Round round;
-        // Recursive structs aren't possible, use a single element array instead
-        LinkedRound[] previousLinkedRound;
+        // Recursive structs aren't possible
+        // Use a single element mapping instead
+        mapping(uint => LinkedRound) previousLinkedRound;
     }
 
     LinkedRound public currentLinkedRound;
@@ -43,7 +44,7 @@ contract ImpactEvaluator is AccessControl {
     receive() external payable {}
 
     function advanceRound() private {
-        LinkedRound memory linkedRound;
+        LinkedRound storage linkedRound;
         if (currentLinkedRound.round.exists) {
             linkedRound.round.index = currentLinkedRound.round.index + 1;
             linkedRound.previousLinkedRound[0] = currentLinkedRound;
@@ -59,7 +60,7 @@ contract ImpactEvaluator is AccessControl {
 
     function maybeRemoveOldestLinkedRound() private {
         if (currentLinkedRound.round.index >= maxStoredRounds) {
-            LinkedRound memory linkedRound = getLinkedRound(
+            LinkedRound storage linkedRound = getLinkedRound(
                 currentLinkedRound.round.index - maxStoredRounds
             );
             delete linkedRound.previousLinkedRound[0];
@@ -111,7 +112,7 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        LinkedRound memory linkedRound = getLinkedRound(roundIndex);
+        LinkedRound storage linkedRound = getLinkedRound(roundIndex);
         require(!linkedRound.round.scoresSubmitted, "Scores already submitted");
         linkedRound.round.participantAddresses = addresses;
         linkedRound.round.participantScores = scores;
