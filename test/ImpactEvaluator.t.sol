@@ -100,9 +100,9 @@ contract ImpactEvaluatorTest is Test {
         assertEq(addresses[0].balance, 100);
 
         ImpactEvaluator.Round memory round = impactEvaluator.getRound(0);
-        assertEq(round.participents.length, 1);
+        assertEq(round.participants.length, 1);
         assertEq(round.scores.length, 1);
-        assertEq(round.participents[0], addresses[0]);
+        assertEq(round.participants[0], addresses[0]);
         assertEq(round.scores[0], scores[0]);
         assertEq(round.summaryText, "1 task performed");
         assertEq(round.scoresSubmitted, true);
