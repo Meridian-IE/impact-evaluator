@@ -8,7 +8,7 @@ contract ImpactEvaluator is AccessControl {
         uint end;
         string[] measurementsCids;
         address payable[] participents;
-        uint[] participantScores;
+        uint[] scores;
         bool scoresSubmitted;
         string summaryText;
     }
@@ -84,7 +84,7 @@ contract ImpactEvaluator is AccessControl {
         Round memory round = rounds[roundIndex];
         require(!round.scoresSubmitted, "Scores already submitted");
         round.participents = addresses;
-        round.participantScores = scores;
+        round.scores = scores;
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
         rounds[roundIndex] = round;
