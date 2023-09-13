@@ -83,9 +83,7 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = rounds[roundIndex];
         require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
-            address addr = addresses[i];
-            uint score = scores[i];
-            round.scores[addr] = score;
+            round.scores[addresses[i]] = scores[i];
         }
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
