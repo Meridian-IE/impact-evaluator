@@ -67,6 +67,8 @@ contract ImpactEvaluator is AccessControl {
 
     function setMaxStoredRounds(uint _maxStoredRounds) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        // TODO: If the new maxStoredRounds is less than the current value,
+        // clean up
         maxStoredRounds = _maxStoredRounds;
     }
 
