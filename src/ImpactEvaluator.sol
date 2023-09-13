@@ -5,7 +5,6 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
-        uint index;
         uint end;
         string[] measurementsCids;
         address payable[] participantAddresses;
@@ -14,17 +13,8 @@ contract ImpactEvaluator is AccessControl {
         string summaryText;
         bool exists;
     }
-    // Recursive structs can't be returned from public methods, therefore have
-    // a separate type to implement the linked list, and return `Round` to the
-    // public
-    struct LinkedRound {
-        Round round;
-        // Recursive structs aren't possible, use a single element array instead
-        LinkedRound[] previousLinkedRound;
-    }
 
-    LinkedRound public currentLinkedRound;
-    LinkedRound public oldestStoredLinkedRound;
+    Round[] public rounds;
     uint public nextRoundLength = 10;
     uint public roundReward = 100;
     uint public maxStoredRounds = 1000;
@@ -43,26 +33,13 @@ contract ImpactEvaluator is AccessControl {
     receive() external payable {}
 
     function advanceRound() private {
-        LinkedRound memory linkedRound;
-        if (currentLinkedRound.round.exists) {
-            linkedRound.round.index = currentLinkedRound.round.index + 1;
-            linkedRound.previousLinkedRound[0] = currentLinkedRound;
-        } else {
-            linkedRound.round.index = 0;
-        }
-        linkedRound.round.end = block.number + nextRoundLength;
-        linkedRound.round.exists = true;
-        currentLinkedRound = linkedRound;
-        emit RoundStart(linkedRound.round.index);
-        maybeRemoveOldestLinkedRound();
-    }
-
-    function maybeRemoveOldestLinkedRound() private {
-        if (currentLinkedRound.round.index >= maxStoredRounds) {
-            LinkedRound memory linkedRound = getLinkedRound(
-                currentLinkedRound.round.index - maxStoredRounds
-            );
-            delete linkedRound.previousLinkedRound[0];
+        Round memory round;
+        round.end = block.number + nextRoundLength;
+        round.exists = true;
+        rounds.push(round);
+        emit RoundStart(currentRoundIndex());
+        if (rounds.length > maxStoredRounds) {
+            delete rounds[rounds.length - maxStoredRounds - 1];
         }
     }
 
@@ -72,7 +49,8 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        if (block.number >= currentLinkedRound.round.end) {
+        uint currentRoundEnd = rounds[currentRoundIndex()].end;
+        if (block.number >= currentRoundEnd) {
             advanceRound();
         }
     }
@@ -93,10 +71,11 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function addMeasurements(string memory cid) public returns (uint) {
-        currentLinkedRound.round.measurementsCids.push(cid);
-        emit MeasurementsAdded(cid, currentLinkedRound.round.index);
+        uint roundIndex = currentRoundIndex();
+        rounds[roundIndex].measurementsCids.push(cid);
+        emit MeasurementsAdded(cid, roundIndex);
         maybeAdvanceRound();
-        return currentLinkedRound.round.index;
+        return roundIndex;
     }
 
     function setScores(
@@ -106,18 +85,18 @@ contract ImpactEvaluator is AccessControl {
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
-        require(roundIndex <= currentRoundIndex() - 2, "Wrong round");
+        require(roundIndex <= rounds.length - 2, "Wrong round");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        LinkedRound memory linkedRound = getLinkedRound(roundIndex);
-        require(!linkedRound.round.scoresSubmitted, "Scores already submitted");
-        linkedRound.round.participantAddresses = addresses;
-        linkedRound.round.participantScores = scores;
-        linkedRound.round.summaryText = summaryText;
-        linkedRound.round.scoresSubmitted = true;
-        getLinkedRound(roundIndex + 1).previousLinkedRound[0] = linkedRound;
+        Round memory round = rounds[roundIndex];
+        require(!round.scoresSubmitted, "Scores already submitted");
+        round.participantAddresses = addresses;
+        round.participantScores = scores;
+        round.summaryText = summaryText;
+        round.scoresSubmitted = true;
+        rounds[roundIndex] = round;
         if (scores.length > 0) {
             reward(addresses, scores);
         }
@@ -136,24 +115,14 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function currentRoundIndex() public view returns (uint) {
-        return currentLinkedRound.round.index;
+        return rounds.length - 1;
     }
 
-    // TODO: Recursive return type not allowed. Wrap round in LinkedRound
     function getRound(uint index) public view returns (Round memory) {
-        return getLinkedRound(index).round;
-    }
-
-    function getLinkedRound(uint index) private view returns (LinkedRound memory) {
-        LinkedRound memory linkedRound = currentLinkedRound;
-        while (linkedRound.round.index != index) {
-            linkedRound = linkedRound.previousLinkedRound[0];
-            require(linkedRound.round.exists, "Round does not exist (any more)");
-        }
-        return linkedRound;
+        return rounds[index];
     }
 
     function currentRoundMeasurementCount() public view returns (uint) {
-        return currentLinkedRound.round.measurementsCids.length;
+        return rounds[currentRoundIndex()].measurementsCids.length;
     }
 }
