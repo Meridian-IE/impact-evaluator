@@ -8,7 +8,7 @@ contract ImpactEvaluator is AccessControl {
         uint end;
         string[] measurementsCids;
         address payable[] participants;
-        uint[] scores;
+        uint64[] scores;
         bool scoresSubmitted;
         string summaryText;
     }
@@ -72,7 +72,7 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint[] memory scores,
+        uint64[] memory scores,
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
@@ -95,7 +95,7 @@ contract ImpactEvaluator is AccessControl {
 
     function reward(
         address payable[] memory addresses,
-        uint[] memory scores
+        uint64[] memory scores
     ) private {
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {

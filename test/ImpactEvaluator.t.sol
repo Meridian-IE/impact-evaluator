@@ -58,7 +58,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             0,
             new address payable[](0),
-            new uint[](0),
+            new uint64[](0),
             "no measurements"
         );
     }
@@ -78,20 +78,20 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             1,
             new address payable[](0),
-            new uint[](0),
+            new uint64[](0),
             "no measurements"
         );
         vm.expectRevert("Addresses and scores length mismatch");
         impactEvaluator.setScores(
             0,
             new address payable[](1),
-            new uint[](0),
+            new uint64[](0),
             "one peer"
         );
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint[] memory scores = new uint[](1);
+        uint64[] memory scores = new uint64[](1);
         scores[0] = 1000000000000000;
         vm.deal(payable(address(impactEvaluator)), 100);
         vm.expectEmit(false, false, false, true);
@@ -124,7 +124,7 @@ contract ImpactEvaluatorTest is Test {
         );
 
         address payable[] memory addresses = new address payable[](0);
-        uint[] memory scores = new uint[](0);
+        uint64[] memory scores = new uint64[](0);
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 
