@@ -1,6 +1,8 @@
 # impact-evaluator
 [Meridian Impact Evaluator](https://pl-strflt.notion.site/Meridian-Design-Doc-06-Decentralization-78c1158223df45a4bec4f162e0fcfc3d?pvs=4)
 
+[Impact Evaluator Framework](https://pl-strflt.notion.site/Impact-Evaluator-Framework-8addafa892674a0d8e67440f309c742f)
+
 ## Public functions
 
 ### `.addMeasurements(string cid) -> uint`
