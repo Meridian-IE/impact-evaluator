@@ -66,10 +66,6 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.grantRole(
-            impactEvaluator.EVALUATE_ROLE(),
-            address(this)
-        );
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
             address(this)
@@ -107,10 +103,6 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresEmptyRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.grantRole(
-            impactEvaluator.EVALUATE_ROLE(),
-            address(this)
-        );
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
             address(this)
