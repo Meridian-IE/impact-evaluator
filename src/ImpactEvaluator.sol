@@ -62,10 +62,10 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function addMeasurements(string memory cid) public returns (uint) {
+        maybeAdvanceRound();
         uint roundIndex = currentRoundIndex();
         rounds[roundIndex].measurementsCids.push(cid);
         emit MeasurementsAdded(cid, roundIndex);
-        maybeAdvanceRound();
         return roundIndex;
     }
 
