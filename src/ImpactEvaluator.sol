@@ -87,9 +87,7 @@ contract ImpactEvaluator is AccessControl {
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
         rounds[roundIndex] = round;
-        if (scores.length > 0) {
-            reward(addresses, scores);
-        }
+        reward(addresses, scores);
     }
 
     function reward(

@@ -118,6 +118,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](0);
         uint[] memory scores = new uint[](0);
+        vm.deal(payable(address(impactEvaluator)), 100);
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 
