@@ -76,7 +76,6 @@ contract ImpactEvaluator is AccessControl {
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
-        require(roundIndex <= rounds.length - 2, "Wrong round");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"

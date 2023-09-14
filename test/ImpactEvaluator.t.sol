@@ -74,13 +74,6 @@ contract ImpactEvaluatorTest is Test {
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
             address(this)
         );
-        vm.expectRevert("Wrong round");
-        impactEvaluator.setScores(
-            1,
-            new address payable[](0),
-            new uint[](0),
-            "no measurements"
-        );
         vm.expectRevert("Addresses and scores length mismatch");
         impactEvaluator.setScores(
             0,
