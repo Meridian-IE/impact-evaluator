@@ -66,20 +66,9 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.grantRole(
-            impactEvaluator.EVALUATE_ROLE(),
-            address(this)
-        );
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
             address(this)
-        );
-        vm.expectRevert("Wrong round");
-        impactEvaluator.setScores(
-            1,
-            new address payable[](0),
-            new uint64[](0),
-            "no measurements"
         );
         vm.expectRevert("Addresses and scores length mismatch");
         impactEvaluator.setScores(
@@ -110,10 +99,6 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresEmptyRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.grantRole(
-            impactEvaluator.EVALUATE_ROLE(),
-            address(this)
-        );
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
             address(this)
@@ -121,6 +106,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
+        vm.deal(payable(address(impactEvaluator)), 100);
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 

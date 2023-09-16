@@ -61,10 +61,10 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function addMeasurements(string memory cid) public returns (uint) {
+        maybeAdvanceRound();
         uint roundIndex = currentRoundIndex();
         rounds[roundIndex].measurementsCids.push(cid);
         emit MeasurementsAdded(cid, roundIndex);
-        maybeAdvanceRound();
         return roundIndex;
     }
 
@@ -75,7 +75,6 @@ contract ImpactEvaluator is AccessControl {
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
-        require(roundIndex <= rounds.length - 2, "Wrong round");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
@@ -87,9 +86,7 @@ contract ImpactEvaluator is AccessControl {
         }
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
-        if (scores.length > 0) {
-            reward(addresses, scores);
-        }
+        reward(addresses, scores);
     }
 
     function reward(
