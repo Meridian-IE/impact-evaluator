@@ -10,11 +10,13 @@ contract ImpactEvaluator is AccessControl {
         mapping (address => uint64) scores;
         bool scoresSubmitted;
         string summaryText;
+        bool exists;
     }
 
     Round[] public rounds;
     uint public nextRoundLength = 10;
     uint public roundReward = 100;
+    uint public maxStoredRounds = 1000;
 
     event MeasurementsAdded(string cid, uint roundIndex);
     event RoundStart(uint roundIndex);
@@ -35,7 +37,11 @@ contract ImpactEvaluator is AccessControl {
         rounds.push();
         Round storage round = rounds[rounds.length - 1];
         round.end = block.number + nextRoundLength;
+        round.exists = true;
         emit RoundStart(currentRoundIndex());
+        if (rounds.length > maxStoredRounds) {
+            delete rounds[rounds.length - maxStoredRounds - 1];
+        }
     }
 
     function adminAdvanceRound() public {
@@ -60,6 +66,16 @@ contract ImpactEvaluator is AccessControl {
         roundReward = _roundReward;
     }
 
+    function setMaxStoredRounds(uint _maxStoredRounds) public {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        if (_maxStoredRounds < maxStoredRounds) {
+            for (uint i = 0; i < rounds.length - _maxStoredRounds; i++) {
+                delete rounds[i];
+            }
+        }
+        maxStoredRounds = _maxStoredRounds;
+    }
+
     function addMeasurements(string memory cid) public returns (uint) {
         maybeAdvanceRound();
         uint roundIndex = currentRoundIndex();
@@ -80,6 +96,7 @@ contract ImpactEvaluator is AccessControl {
             "Addresses and scores length mismatch"
         );
         Round storage round = rounds[roundIndex];
+        require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
             round.scores[addresses[i]] = scores[i];
@@ -128,6 +145,10 @@ contract ImpactEvaluator is AccessControl {
 
     function getParticipantScore(uint roundIndex, address participant) public view returns (uint) {
         return rounds[roundIndex].scores[participant];
+    }
+
+    function getRoundExists(uint index) public view returns (bool) {
+        return rounds[index].exists;
     }
 
     function currentRoundMeasurementCount() public view returns (uint) {
