@@ -96,6 +96,7 @@ contract ImpactEvaluator is AccessControl {
             "Addresses and scores length mismatch"
         );
         Round storage round = rounds[roundIndex];
+        require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
             round.scores[addresses[i]] = scores[i];
