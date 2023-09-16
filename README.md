@@ -1,6 +1,8 @@
 # impact-evaluator
 [Meridian Impact Evaluator](https://pl-strflt.notion.site/Meridian-Design-Doc-06-Decentralization-78c1158223df45a4bec4f162e0fcfc3d?pvs=4)
 
+[Impact Evaluator Framework](https://pl-strflt.notion.site/Impact-Evaluator-Framework-8addafa892674a0d8e67440f309c742f)
+
 ## Public functions
 
 ### `.addMeasurements(string cid) -> uint`
@@ -32,6 +34,8 @@
 
 ### `MeasurementsAdded(string cid, uint roundIndex)`
 ### `RoundStart(uint roundIndex)`
+### `Transfer(address indexed to, uint256 amount)`
+### `TransferFailed(address indexed to, uint256 amount)`
 
 ## Structs
 
@@ -47,6 +51,7 @@ We recommend you install it from source:
 ```bash
 git clone https://github.com/foundry-rs/foundry
 cd foundry
+git checkout 9a4bb7f5
 # install cast + forge
 cargo install --path ./cli --profile local --bins --locked --force
 # install anvil
