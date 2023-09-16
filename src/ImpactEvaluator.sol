@@ -7,8 +7,7 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
-        address payable[] participants;
-        uint[] scores;
+        mapping (address => uint64) scores;
         bool scoresSubmitted;
         string summaryText;
     }
@@ -33,9 +32,9 @@ contract ImpactEvaluator is AccessControl {
     receive() external payable {}
 
     function advanceRound() private {
-        Round memory round;
+        rounds.push();
+        Round storage round = rounds[rounds.length - 1];
         round.end = block.number + nextRoundLength;
-        rounds.push(round);
         emit RoundStart(currentRoundIndex());
     }
 
@@ -72,7 +71,7 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint[] memory scores,
+        uint64[] memory scores,
         string memory summaryText
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
@@ -80,19 +79,19 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        Round memory round = rounds[roundIndex];
+        Round storage round = rounds[roundIndex];
         require(!round.scoresSubmitted, "Scores already submitted");
-        round.participants = addresses;
-        round.scores = scores;
+        for (uint i = 0; i < addresses.length; i++) {
+            round.scores[addresses[i]] = scores[i];
+        }
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
-        rounds[roundIndex] = round;
         reward(addresses, scores);
     }
 
     function reward(
         address payable[] memory addresses,
-        uint[] memory scores
+        uint64[] memory scores
     ) private {
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
@@ -111,8 +110,24 @@ contract ImpactEvaluator is AccessControl {
         return rounds.length - 1;
     }
 
-    function getRound(uint index) public view returns (Round memory) {
-        return rounds[index];
+    function getRoundEnd(uint index) public view returns (uint) {
+        return rounds[index].end;
+    }
+
+    function getRoundMeasurementsCids(uint index) public view returns (string[] memory) {
+        return rounds[index].measurementsCids;
+    }
+
+    function getRoundSummaryText(uint index) public view returns (string memory) {
+        return rounds[index].summaryText;
+    }
+
+    function getRoundScoresSubmitted(uint index) public view returns (bool) {
+        return rounds[index].scoresSubmitted;
+    }
+
+    function getParticipantScore(uint roundIndex, address participant) public view returns (uint) {
+        return rounds[roundIndex].scores[participant];
     }
 
     function currentRoundMeasurementCount() public view returns (uint) {
