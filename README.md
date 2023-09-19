@@ -32,7 +32,7 @@
 
 ## Events
 
-### `MeasurementsAdded(string cid, uint roundIndex)`
+### `MeasurementsAdded(string cid, uint roundIndex, address sender)`
 ### `RoundStart(uint roundIndex)`
 ### `Transfer(address indexed to, uint256 amount)`
 ### `TransferFailed(address indexed to, uint256 amount)`
