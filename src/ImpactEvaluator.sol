@@ -18,7 +18,7 @@ contract ImpactEvaluator is AccessControl {
     uint public roundReward = 100;
     uint public maxStoredRounds = 1000;
 
-    event MeasurementsAdded(string cid, uint roundIndex);
+    event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event RoundStart(uint roundIndex);
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
@@ -80,7 +80,7 @@ contract ImpactEvaluator is AccessControl {
         maybeAdvanceRound();
         uint roundIndex = currentRoundIndex();
         rounds[roundIndex].measurementsCids.push(cid);
-        emit MeasurementsAdded(cid, roundIndex);
+        emit MeasurementsAdded(cid, roundIndex, msg.sender);
         return roundIndex;
     }
 

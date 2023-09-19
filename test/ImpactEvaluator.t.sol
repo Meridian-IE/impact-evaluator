@@ -6,7 +6,7 @@ import "../src/ImpactEvaluator.sol";
 
 contract ImpactEvaluatorTest is Test {
     event RoundStart(uint roundIndex);
-    event MeasurementsAdded(string cid, uint roundIndex);
+    event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event Transfer(address indexed to, uint256 amount);
 
     function test_AdvanceRound() public {
@@ -63,7 +63,7 @@ contract ImpactEvaluatorTest is Test {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         assertEq(impactEvaluator.getRoundMeasurementsCids(0).length, 0);
         vm.expectEmit(false, false, false, true);
-        emit MeasurementsAdded("cid", 0);
+        emit MeasurementsAdded("cid", 0, address(this));
         uint roundIndex = impactEvaluator.addMeasurements("cid");
         assertEq(roundIndex, 0);
         assertEq(impactEvaluator.getRoundMeasurementsCids(0).length, 1);
