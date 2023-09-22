@@ -15,7 +15,7 @@ contract ImpactEvaluator is AccessControl {
 
     Round[] public rounds;
     uint public nextRoundLength = 10;
-    uint public roundReward = 100;
+    uint public roundReward = 100 ether;
     uint public maxStoredRounds = 1000;
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
@@ -114,7 +114,7 @@ contract ImpactEvaluator is AccessControl {
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            uint256 amount = (score / 1000000000000000) * roundReward;
+            uint256 amount = (score * roundReward) / 1e15;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
