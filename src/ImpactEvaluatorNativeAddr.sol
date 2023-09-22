@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
-// Keep up to date with ImpactEvaluatorNativeAddr.sol!
+// Keep up to date with ImpactEvaluator.sol!
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import "../lib/filecoin-solidity/contracts/v0.8/utils/FilAddresses.sol";
+import "../lib/filecoin-solidity/contracts/v0.8/utils/Actor.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl {
+contract ImpactEvaluatorNativeAddr is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
-        address[] participants;
+        CommonTypes.FilAddress[] participants;
         uint64[] scores;
         bool scoresSubmitted;
         string summaryText;
@@ -23,8 +25,8 @@ contract ImpactEvaluator is AccessControl {
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event RoundStart(uint roundIndex);
-    event Transfer(address indexed to, uint256 amount);
-    event TransferFailed(address indexed to, uint256 amount);
+    event Transfer(CommonTypes.FilAddress indexed to, uint256 amount);
+    event TransferFailed(CommonTypes.FilAddress indexed to, uint256 amount);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -89,7 +91,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setScores(
         uint roundIndex,
-        address payable[] memory addresses,
+        CommonTypes.FilAddress[] memory addresses,
         uint64[] memory scores,
         string memory summaryText
     ) public {
@@ -101,7 +103,9 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
-        round.participants = addresses;
+        for (uint i = 0; i < addresses.length; i++) {
+          round.participants.push(addresses[i]);
+        }
         round.scores = scores;
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
@@ -109,15 +113,24 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function reward(
-        address payable[] memory addresses,
+        CommonTypes.FilAddress[] memory addresses,
         uint64[] memory scores
     ) private {
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
-            address payable addr = addresses[i];
+            CommonTypes.FilAddress memory addr = addresses[i];
             uint score = scores[i];
             uint256 amount = (score / 1000000000000000) * roundReward;
-            if (addr.send(amount)) {
+            // bytes memory result = Actor.callByAddress(
+            //     addr.data,       // actor_address
+            //     0,               // method_num
+            //     Misc.NONE_CODEC, // codec
+            //     new bytes(0),    // raw_request
+            //     amount,          // value
+            //     false            // static_call
+            // );
+            // Conversion doesn't work
+            if (payable(address(addr.data)).send(amount)) {
                 emit Transfer(addr, amount);
             } else {
                 emit TransferFailed(addr, amount);

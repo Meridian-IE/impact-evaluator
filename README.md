@@ -118,7 +118,7 @@ The deployment relies on contract bindings generated in the `/contract-bindings`
 
 ```bash
 rm -rf contract-bindings
-forge bind  --crate-name contract-bindings -b ./contract-bindings
+forge bind --select "(?:^|\W)ImpactEvaluatorNativeAddr(?:$|\W)" --crate-name contract-bindings -b ./contract-bindings
 ```
 This will create new bindings with the modified contracts.
 
