@@ -85,17 +85,17 @@ contract ImpactEvaluatorNativeAddrTest is Test {
     function test_SetScores() public {
         ImpactEvaluatorNativeAddr impactEvaluator = new ImpactEvaluatorNativeAddr(address(this));
         impactEvaluator.adminAdvanceRound();
-        // impactEvaluator.revokeRole(
-        //     impactEvaluator.DEFAULT_ADMIN_ROLE(),
-        //     address(this)
-        // );
-        // vm.expectRevert("Addresses and scores length mismatch");
-        // impactEvaluator.setScores(
-        //     0,
-        //     new CommonTypes.FilAddress[](1),
-        //     new uint64[](0),
-        //     "one peer"
-        // );
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.expectRevert("Addresses and scores length mismatch");
+        impactEvaluator.setScores(
+            0,
+            new CommonTypes.FilAddress[](1),
+            new uint64[](0),
+            "one peer"
+        );
 
         CommonTypes.FilAddress[] memory addresses = new CommonTypes.FilAddress[](1);
         addresses[0] = FilAddresses.fromEthAddress(vm.addr(1));
@@ -107,12 +107,12 @@ contract ImpactEvaluatorNativeAddrTest is Test {
         impactEvaluator.setScores(0, addresses, scores, "1 task performed");
         // TODO: assertEq(addresses[0].balance, 100);
 
-        // assertEq(impactEvaluator.getScores(0)[0], scores[0]);
-        // assertEq(impactEvaluator.getRoundSummaryText(0), "1 task performed");
-        // assertEq(impactEvaluator.getRoundScoresSubmitted(0), true);
+        assertEq(impactEvaluator.getScores(0)[0], scores[0]);
+        assertEq(impactEvaluator.getRoundSummaryText(0), "1 task performed");
+        assertEq(impactEvaluator.getRoundScoresSubmitted(0), true);
 
-        // vm.expectRevert("Scores already submitted");
-        // impactEvaluator.setScores(0, addresses, scores, "1 task performed");
+        vm.expectRevert("Scores already submitted");
+        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
     }
 
     function test_SetScoresEmptyRound() public {

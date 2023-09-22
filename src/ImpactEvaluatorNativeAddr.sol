@@ -121,16 +121,17 @@ contract ImpactEvaluatorNativeAddr is AccessControl {
             CommonTypes.FilAddress memory addr = addresses[i];
             uint score = scores[i];
             uint256 amount = (score / 1000000000000000) * roundReward;
-            // bytes memory result = Actor.callByAddress(
-            //     addr.data,       // actor_address
-            //     0,               // method_num
-            //     Misc.NONE_CODEC, // codec
-            //     new bytes(0),    // raw_request
-            //     amount,          // value
-            //     false            // static_call
-            // );
+            bytes memory result = Actor.callByAddress(
+                addr.data,       // actor_address
+                0,               // method_num
+                Misc.NONE_CODEC, // codec
+                new bytes(0),    // raw_request
+                amount,          // value
+                false            // static_call
+            );
             // Conversion doesn't work
-            if (payable(address(addr.data)).send(amount)) {
+            // if (payable(address(addr.data)).send(amount)) {
+            if (result.length == 0) {
                 emit Transfer(addr, amount);
             } else {
                 emit TransferFailed(addr, amount);
