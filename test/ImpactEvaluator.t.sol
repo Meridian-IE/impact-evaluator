@@ -48,15 +48,15 @@ contract ImpactEvaluatorTest is Test {
 
     function test_setRoundReward() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.roundReward(), 100);
-        impactEvaluator.setRoundReward(200);
-        assertEq(impactEvaluator.roundReward(), 200);
+        assertEq(impactEvaluator.roundReward(), 100 ether);
+        impactEvaluator.setRoundReward(200 ether);
+        assertEq(impactEvaluator.roundReward(), 200 ether);
     }
 
     function test_setRoundRewardNotAdmin() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an admin");
-        impactEvaluator.setRoundReward(200);
+        impactEvaluator.setRoundReward(200 ether);
     }
 
     function test_AddMeasurements() public {
@@ -99,12 +99,12 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
-        scores[0] = 1000000000000000;
-        vm.deal(payable(address(impactEvaluator)), 100);
+        scores[0] = 1e15;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
-        emit Transfer(addresses[0], 100);
+        emit Transfer(addresses[0], 100 ether);
         impactEvaluator.setScores(0, addresses, scores, "1 task performed");
-        assertEq(addresses[0].balance, 100);
+        assertEq(addresses[0].balance, 100 ether, "correct balance");
 
         assertEq(impactEvaluator.getParticipantScore(0, addresses[0]), scores[0]);
         assertEq(impactEvaluator.getRoundSummaryText(0), "1 task performed");
@@ -114,17 +114,53 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores, "1 task performed");
     }
 
+    function test_SetScoresMultipleParticipants() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](3);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        addresses[2] = payable(vm.addr(3));
+
+        uint64[] memory scores = new uint64[](3);
+        scores[0] = 50e13;
+        scores[1] = 25e13;
+        scores[2] = 25e13;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.setScores(0, addresses, scores, "some task performed");
+        assertEq(addresses[0].balance, 50 ether, "addresses[0] balance");
+        assertEq(addresses[1].balance, 25 ether);
+        assertEq(addresses[2].balance, 25 ether);
+    }
+
+    function test_SetScoresFractions() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](2);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        uint64[] memory scores = new uint64[](2);
+        scores[0] = 1e15 - 1;
+        scores[1] = 1;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        vm.expectEmit(false, false, false, true);
+        emit Transfer(addresses[0], 100 ether - 1e5);
+        vm.expectEmit(false, false, false, true);
+        emit Transfer(addresses[0], 1e5);
+        impactEvaluator.setScores(0, addresses, scores, "2 tasks performed");
+        assertEq(addresses[0].balance, 100 ether - 1e5, "addresses[0] balance");
+        assertEq(addresses[1].balance, 1e5, "addresses[1] balance");
+    }
+
     function test_SetScoresEmptyRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.revokeRole(
-            impactEvaluator.DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
 
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
-        vm.deal(payable(address(impactEvaluator)), 100);
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 
