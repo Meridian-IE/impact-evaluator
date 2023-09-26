@@ -26,13 +26,13 @@ pub mod std_style {
         __abi,
     );
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xD2h|\x05\xAFR\x92\xF94J\xC6\xC9\xB7\xEEV\x13\xF8\x82\xF86\xE5\x88E\x1Cc\xE4W\xCE\xDA[\xFE\xAAdsolcC\0\x08\x15\x003";
+    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xF6\x1F\x8A\x8D6l\xCB\xBB\xF3\xC5\x96Z<q $\x8D\xAD\xAAT\xA9\x13m?\xDF\x03J\xB5a\x89\x8B]dsolcC\0\x08\x15\x003";
     /// The bytecode of the contract.
     pub static STDSTYLE_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xD2h|\x05\xAFR\x92\xF94J\xC6\xC9\xB7\xEEV\x13\xF8\x82\xF86\xE5\x88E\x1Cc\xE4W\xCE\xDA[\xFE\xAAdsolcC\0\x08\x15\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xF6\x1F\x8A\x8D6l\xCB\xBB\xF3\xC5\x96Z<q $\x8D\xAD\xAAT\xA9\x13m?\xDF\x03J\xB5a\x89\x8B]dsolcC\0\x08\x15\x003";
     /// The deployed bytecode of the contract.
     pub static STDSTYLE_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
