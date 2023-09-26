@@ -126,8 +126,7 @@ Deployment can then proceed either with a locally stored mnemonic or a connected
 
 To deploy, run:
 ```bash
-cd contract-utils
-cargo run
+(cd contract-utils && cargo run)
 ```
 
 
