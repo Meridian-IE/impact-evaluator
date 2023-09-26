@@ -9,6 +9,5 @@ pub mod erc165;
 pub mod i_access_control;
 pub mod ierc165;
 pub mod impact_evaluator;
-pub mod measure;
 pub mod std_invariant;
 pub mod std_style;
