@@ -77,8 +77,7 @@ contract ImpactEvaluatorTest is Test {
             0,
             new address payable[](0),
             new uint64[](0),
-            0,
-            1
+            false
         );
     }
 
@@ -94,8 +93,7 @@ contract ImpactEvaluatorTest is Test {
             0,
             new address payable[](1),
             new uint64[](0),
-            0,
-            1
+            false
         );
 
         address payable[] memory addresses = new address payable[](1);
@@ -105,13 +103,13 @@ contract ImpactEvaluatorTest is Test {
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, 0, 1);
+        impactEvaluator.setScores(0, addresses, scores, false);
         assertEq(addresses[0].balance, 100 ether, "correct balance");
 
         assertEq(impactEvaluator.getParticipantScore(0, addresses[0]), scores[0]);
 
-        vm.expectRevert("Call number already used");
-        impactEvaluator.setScores(0, addresses, scores, 0, 1);
+        vm.expectRevert("Scores already submitted");
+        impactEvaluator.setScores(0, addresses, scores, false);
     }
 
     function test_SetScoresMultipleParticipants() public {
@@ -128,7 +126,7 @@ contract ImpactEvaluatorTest is Test {
         scores[1] = 25e13;
         scores[2] = 25e13;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, 0, 1);
+        impactEvaluator.setScores(0, addresses, scores, false);
         assertEq(addresses[0].balance, 50 ether, "addresses[0] balance");
         assertEq(addresses[1].balance, 25 ether);
         assertEq(addresses[2].balance, 25 ether);
@@ -149,7 +147,7 @@ contract ImpactEvaluatorTest is Test {
         emit Transfer(addresses[0], 100 ether - 1e5);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 1e5);
-        impactEvaluator.setScores(0, addresses, scores, 0, 1);
+        impactEvaluator.setScores(0, addresses, scores, false);
         assertEq(addresses[0].balance, 100 ether - 1e5, "addresses[0] balance");
         assertEq(addresses[1].balance, 1e5, "addresses[1] balance");
     }
@@ -161,7 +159,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, 0, 1);
+        impactEvaluator.setScores(0, addresses, scores, false);
     }
 
     function test_SetScoresMultipleCalls() public {
@@ -171,11 +169,11 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
         scores[0] = 1e15 - 1;
-        impactEvaluator.setScores(0, addresses, scores, 0, 2);
+        impactEvaluator.setScores(0, addresses, scores, true);
         addresses[0] = payable(vm.addr(2));
         scores[0] = 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, 1, 2);
+        impactEvaluator.setScores(0, addresses, scores, false);
         assertEq(vm.addr(1).balance, 100 ether - 1e5, "vm.addr(1) balance");
         assertEq(vm.addr(2).balance, 1e5, "vm.addr(2) balance");
     }

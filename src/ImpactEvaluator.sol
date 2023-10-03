@@ -9,7 +9,7 @@ contract ImpactEvaluator is AccessControl {
         string[] measurementsCids;
         address payable[] addresses;
         mapping(address => uint64) scores;
-        mapping(uint => bool) scoresSubmitted;
+        bool scoresSubmitted;
         string summaryText;
         bool exists;
     }
@@ -92,29 +92,25 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address payable[] memory addresses,
         uint64[] memory scores,
-        uint callNumber,
-        uint totalCalls
+        bool moreScoresExpected
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(callNumber < totalCalls, "Call number exceeded");
 
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
-        require(
-            round.scoresSubmitted[callNumber] == false,
-            "Call number already used"
-        );
+        require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
             require(round.scores[addresses[i]] == 0, "Address already scored");
             round.addresses.push(addresses[i]);
             round.scores[addresses[i]] = scores[i];
         }
-        round.scoresSubmitted[callNumber] = true;
-        if (callNumber == totalCalls - 1) {
+
+        if (!moreScoresExpected) {
+            round.scoresSubmitted = true;
             reward(round.addresses, round.scores);
         }
     }
