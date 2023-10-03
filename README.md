@@ -9,7 +9,7 @@
 
 ## Evaluator functions
 
-### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores, string summaryText)`
+### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
 
 ## Admin functions
 
@@ -20,9 +20,6 @@
 ## Getters / Views
 
 ### `.currentRoundIndex() -> uint`
-### `.getRound(uint index) -> Round`
-### `.currentRoundMeasurementCount() -> uint`
-### `.rounds()`
 ### `.nextRoundLength()`
 ### `.roundReward()`
 
