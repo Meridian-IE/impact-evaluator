@@ -134,6 +134,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function getRoundEnd(uint index) public view returns (uint) {
+        require(rounds[index].exists, "Round does not exist");
         return rounds[index].end;
     }
 
@@ -146,10 +147,12 @@ contract ImpactEvaluator is AccessControl {
     function getRoundSummaryText(
         uint index
     ) public view returns (string memory) {
+        require(rounds[index].exists, "Round does not exist");
         return rounds[index].summaryText;
     }
 
     function getRoundScoresSubmitted(uint index) public view returns (bool) {
+        require(rounds[index].exists, "Round does not exist");
         return rounds[index].scoresSubmitted;
     }
 
@@ -157,6 +160,7 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address participant
     ) public view returns (uint) {
+        require(rounds[roundIndex].exists, "Round does not exist");
         return rounds[roundIndex].scores[participant];
     }
 
