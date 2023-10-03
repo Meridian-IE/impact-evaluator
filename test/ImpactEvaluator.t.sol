@@ -101,7 +101,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
-        scores[0] = 1e15;
+        scores[0] = impactEvaluator.MAX_SCORE();
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 100 ether);
@@ -144,7 +144,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(2));
         uint64[] memory scores = new uint64[](2);
-        scores[0] = 1e15 - 1;
+        scores[0] = impactEvaluator.MAX_SCORE() - 1;
         scores[1] = 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
