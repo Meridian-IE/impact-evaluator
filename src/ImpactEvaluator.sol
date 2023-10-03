@@ -8,7 +8,7 @@ contract ImpactEvaluator is AccessControl {
         uint end;
         string[] measurementsCids;
         mapping(address => uint64) scores;
-        bool scoresSubmitted;
+        uint[] scoresSubmitted;
         string summaryText;
         bool exists;
     }
@@ -91,22 +91,31 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address payable[] memory addresses,
         uint64[] memory scores,
-        string memory summaryText
+        uint callNumber,
+        uint totalCalls
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
+        require(callNumber < totalCalls, "Call number exceeded");
+
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
-        require(!round.scoresSubmitted, "Scores already submitted");
+        for (uint i = 0; i < round.scoresSubmitted.length; i++) {
+            require(
+                round.scoresSubmitted[i] != callNumber,
+                "Call number already used"
+            );
+        }
         for (uint i = 0; i < addresses.length; i++) {
             round.scores[addresses[i]] = scores[i];
         }
-        round.summaryText = summaryText;
-        round.scoresSubmitted = true;
-        reward(addresses, scores);
+        round.scoresSubmitted.push(callNumber);
+        if (round.scoresSubmitted.length == totalCalls) {
+            reward(addresses, scores);
+        }
     }
 
     function reward(
@@ -140,13 +149,7 @@ contract ImpactEvaluator is AccessControl {
         return rounds[index].measurementsCids;
     }
 
-    function getRoundSummaryText(
-        uint index
-    ) public view returns (string memory) {
-        return rounds[index].summaryText;
-    }
-
-    function getRoundScoresSubmitted(uint index) public view returns (bool) {
+    function getRoundScoresSubmitted(uint index) public view returns (uint[] memory) {
         return rounds[index].scoresSubmitted;
     }
 
