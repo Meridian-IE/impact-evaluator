@@ -7,8 +7,9 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
+        address payable[] addresses;
         mapping(address => uint64) scores;
-        uint[] scoresSubmitted;
+        mapping(uint => bool) scoresSubmitted;
         string summaryText;
         bool exists;
     }
@@ -103,29 +104,29 @@ contract ImpactEvaluator is AccessControl {
 
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
-        for (uint i = 0; i < round.scoresSubmitted.length; i++) {
-            require(
-                round.scoresSubmitted[i] != callNumber,
-                "Call number already used"
-            );
-        }
+        require(
+            round.scoresSubmitted[callNumber] == false,
+            "Call number already used"
+        );
         for (uint i = 0; i < addresses.length; i++) {
+            require(round.scores[addresses[i]] == 0, "Address already scored");
+            round.addresses.push(addresses[i]);
             round.scores[addresses[i]] = scores[i];
         }
-        round.scoresSubmitted.push(callNumber);
-        if (round.scoresSubmitted.length == totalCalls) {
-            reward(addresses, scores);
+        round.scoresSubmitted[callNumber] = true;
+        if (callNumber == totalCalls - 1) {
+            reward(round.addresses, round.scores);
         }
     }
 
     function reward(
         address payable[] memory addresses,
-        uint64[] memory scores
+        mapping(address => uint64) storage scores
     ) private {
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
-            uint score = scores[i];
+            uint score = scores[addr];
             uint256 amount = (score * roundReward) / 1e15;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
@@ -147,10 +148,6 @@ contract ImpactEvaluator is AccessControl {
         uint index
     ) public view returns (string[] memory) {
         return rounds[index].measurementsCids;
-    }
-
-    function getRoundScoresSubmitted(uint index) public view returns (uint[] memory) {
-        return rounds[index].scoresSubmitted;
     }
 
     function getParticipantScore(

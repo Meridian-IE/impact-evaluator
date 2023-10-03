@@ -109,8 +109,6 @@ contract ImpactEvaluatorTest is Test {
         assertEq(addresses[0].balance, 100 ether, "correct balance");
 
         assertEq(impactEvaluator.getParticipantScore(0, addresses[0]), scores[0]);
-        assertEq(impactEvaluator.getRoundScoresSubmitted(0).length, 1);
-        assertEq(impactEvaluator.getRoundScoresSubmitted(0)[0], 0);
 
         vm.expectRevert("Call number already used");
         impactEvaluator.setScores(0, addresses, scores, 0, 1);
@@ -164,6 +162,22 @@ contract ImpactEvaluatorTest is Test {
         uint64[] memory scores = new uint64[](0);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.setScores(0, addresses, scores, 0, 1);
+    }
+
+    function test_SetScoresMultipleCalls() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = 1e15 - 1;
+        impactEvaluator.setScores(0, addresses, scores, 0, 2);
+        addresses[0] = payable(vm.addr(2));
+        scores[0] = 1;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.setScores(0, addresses, scores, 1, 2);
+        assertEq(vm.addr(1).balance, 100 ether - 1e5, "vm.addr(1) balance");
+        assertEq(vm.addr(2).balance, 1e5, "vm.addr(2) balance");
     }
 
     function test_CurrentRoundMeasurementCount() public {
