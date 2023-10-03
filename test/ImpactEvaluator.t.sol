@@ -12,38 +12,24 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        assertEq(impactEvaluator.getRoundEnd(0), block.number + 10);
+        (uint end, ) = impactEvaluator.openRounds(0);
+        assertEq(end, block.number + 10);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundIndex(), 1);
     }
 
-    function test_AdvanceRoundCleanup() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        impactEvaluator.setMaxStoredRounds(1);
-        impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.currentRoundIndex(), 1);
-        assertEq(impactEvaluator.getRoundExists(0), false);
-        assertEq(impactEvaluator.getRoundExists(1), true);
-        impactEvaluator.setMaxStoredRounds(1000);
-        impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.getRoundExists(0), false);
-        assertEq(impactEvaluator.getRoundExists(1), true);
-        assertEq(impactEvaluator.getRoundExists(2), true);
-        impactEvaluator.setMaxStoredRounds(1);
-        assertEq(impactEvaluator.getRoundExists(0), false);
-        assertEq(impactEvaluator.getRoundExists(1), false);
-        assertEq(impactEvaluator.getRoundExists(2), true);
-    }
-
     function test_SetNextRoundLength() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.getRoundEnd(0), block.number + 10);
+        (uint end, ) = impactEvaluator.openRounds(0);
+        assertEq(end, block.number + 10);
         impactEvaluator.setNextRoundLength(20);
-        assertEq(impactEvaluator.getRoundEnd(0), block.number + 10);
+        (end, ) = impactEvaluator.openRounds(0);
+        assertEq(end, block.number + 10);
         impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.getRoundEnd(1), block.number + 20);
+        (end, ) = impactEvaluator.openRounds(1);
+        assertEq(end, block.number + 20);
     }
 
     function test_setRoundReward() public {
@@ -61,13 +47,12 @@ contract ImpactEvaluatorTest is Test {
 
     function test_AddMeasurements() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
-        assertEq(impactEvaluator.getRoundMeasurementsCids(0).length, 0);
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
         vm.expectEmit(false, false, false, true);
         emit MeasurementsAdded("cid", 0, address(this));
         uint roundIndex = impactEvaluator.addMeasurements("cid");
         assertEq(roundIndex, 0);
-        assertEq(impactEvaluator.getRoundMeasurementsCids(0).length, 1);
-        assertEq(impactEvaluator.getRoundMeasurementsCids(0)[0], "cid");
+        assertEq(impactEvaluator.currentRoundMeasurementCount(), 1);
     }
 
     function test_SetScoresNotEvaluator() public {
@@ -76,8 +61,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             0,
             new address payable[](0),
-            new uint64[](0),
-            "no measurements"
+            new uint64[](0)
         );
     }
 
@@ -92,8 +76,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             0,
             new address payable[](1),
-            new uint64[](0),
-            "one peer"
+            new uint64[](0)
         );
 
         address payable[] memory addresses = new address payable[](1);
@@ -103,15 +86,11 @@ contract ImpactEvaluatorTest is Test {
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 100 ether, "correct balance");
 
-        assertEq(impactEvaluator.getParticipantScore(0, addresses[0]), scores[0]);
-        assertEq(impactEvaluator.getRoundSummaryText(0), "1 task performed");
-        assertEq(impactEvaluator.getRoundScoresSubmitted(0), true);
-
-        vm.expectRevert("Scores already submitted");
-        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
+        vm.expectRevert("Open round does not exist");
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleParticipants() public {
@@ -128,7 +107,7 @@ contract ImpactEvaluatorTest is Test {
         scores[1] = 25e13;
         scores[2] = 25e13;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, "some task performed");
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 50 ether, "addresses[0] balance");
         assertEq(addresses[1].balance, 25 ether);
         assertEq(addresses[2].balance, 25 ether);
@@ -149,7 +128,7 @@ contract ImpactEvaluatorTest is Test {
         emit Transfer(addresses[0], 100 ether - 1e5);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 1e5);
-        impactEvaluator.setScores(0, addresses, scores, "2 tasks performed");
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 100 ether - 1e5, "addresses[0] balance");
         assertEq(addresses[1].balance, 1e5, "addresses[1] balance");
     }
@@ -161,7 +140,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_CurrentRoundMeasurementCount() public {
@@ -171,14 +150,5 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 1);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
-    }
-
-    function testSetMaxStoredRounds() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.maxStoredRounds(), 1000);
-        impactEvaluator.setMaxStoredRounds(500);
-        assertEq(impactEvaluator.maxStoredRounds(), 500);
-        impactEvaluator.setMaxStoredRounds(2000);
-        assertEq(impactEvaluator.maxStoredRounds(), 2000);
     }
 }

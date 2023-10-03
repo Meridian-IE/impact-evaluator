@@ -7,16 +7,13 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
-        mapping(address => uint64) scores;
-        bool scoresSubmitted;
-        string summaryText;
         bool exists;
     }
 
-    Round[] public rounds;
+    mapping(uint => Round) public openRounds;
+    uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
-    uint public maxStoredRounds = 1000;
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event RoundStart(uint roundIndex);
@@ -28,31 +25,30 @@ contract ImpactEvaluator is AccessControl {
     constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        advanceRound();
+        advanceRound(true);
     }
 
     receive() external payable {}
 
-    function advanceRound() private {
-        rounds.push();
-        Round storage round = rounds[rounds.length - 1];
+    function advanceRound(bool firstRound) private {
+        if (!firstRound) {
+            currentRoundIndex++;
+        }
+        Round storage round = openRounds[currentRoundIndex];
         round.end = block.number + nextRoundLength;
         round.exists = true;
-        emit RoundStart(currentRoundIndex());
-        if (rounds.length > maxStoredRounds) {
-            delete rounds[rounds.length - maxStoredRounds - 1];
-        }
+        emit RoundStart(currentRoundIndex);
     }
 
     function adminAdvanceRound() public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        advanceRound();
+        advanceRound(false);
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundEnd = rounds[currentRoundIndex()].end;
+        uint currentRoundEnd = openRounds[currentRoundIndex].end;
         if (block.number >= currentRoundEnd) {
-            advanceRound();
+            advanceRound(false);
         }
     }
 
@@ -66,47 +62,27 @@ contract ImpactEvaluator is AccessControl {
         roundReward = _roundReward;
     }
 
-    function setMaxStoredRounds(uint _maxStoredRounds) public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        if (
-            _maxStoredRounds < maxStoredRounds &&
-            rounds.length > _maxStoredRounds
-        ) {
-            for (uint i = 0; i < rounds.length - _maxStoredRounds; i++) {
-                delete rounds[i];
-            }
-        }
-        maxStoredRounds = _maxStoredRounds;
-    }
-
     function addMeasurements(string memory cid) public returns (uint) {
         maybeAdvanceRound();
-        uint roundIndex = currentRoundIndex();
-        rounds[roundIndex].measurementsCids.push(cid);
-        emit MeasurementsAdded(cid, roundIndex, msg.sender);
-        return roundIndex;
+        openRounds[currentRoundIndex].measurementsCids.push(cid);
+        emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
+        return currentRoundIndex;
     }
 
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint64[] memory scores,
-        string memory summaryText
+        uint64[] memory scores
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        Round storage round = rounds[roundIndex];
-        require(round.exists, "Round does not exist");
-        require(!round.scoresSubmitted, "Scores already submitted");
-        for (uint i = 0; i < addresses.length; i++) {
-            round.scores[addresses[i]] = scores[i];
-        }
-        round.summaryText = summaryText;
-        round.scoresSubmitted = true;
+        Round storage round = openRounds[roundIndex];
+        require(round.exists, "Open round does not exist");
         reward(addresses, scores);
+        delete openRounds[roundIndex];
     }
 
     function reward(
@@ -126,42 +102,7 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function currentRoundIndex() public view returns (uint) {
-        return rounds.length - 1;
-    }
-
-    function getRoundEnd(uint index) public view returns (uint) {
-        return rounds[index].end;
-    }
-
-    function getRoundMeasurementsCids(
-        uint index
-    ) public view returns (string[] memory) {
-        return rounds[index].measurementsCids;
-    }
-
-    function getRoundSummaryText(
-        uint index
-    ) public view returns (string memory) {
-        return rounds[index].summaryText;
-    }
-
-    function getRoundScoresSubmitted(uint index) public view returns (bool) {
-        return rounds[index].scoresSubmitted;
-    }
-
-    function getParticipantScore(
-        uint roundIndex,
-        address participant
-    ) public view returns (uint) {
-        return rounds[roundIndex].scores[participant];
-    }
-
-    function getRoundExists(uint index) public view returns (bool) {
-        return rounds[index].exists;
-    }
-
     function currentRoundMeasurementCount() public view returns (uint) {
-        return rounds[currentRoundIndex()].measurementsCids.length;
+        return openRounds[currentRoundIndex].measurementsCids.length;
     }
 }
