@@ -146,15 +146,15 @@ contract ImpactEvaluator is AccessControl {
         return rounds[index].measurementsCids;
     }
 
+    function getRoundScoresSubmitted(uint index) public view returns (bool) {
+        return rounds[index].scoresSubmitted;
+    }
+
     function getParticipantScore(
         uint roundIndex,
         address participant
     ) public view returns (uint) {
         return rounds[roundIndex].scores[participant];
-    }
-
-    function getRoundScoresSubmitted(uint index) public view returns (bool) {
-        return rounds[index].scoresSubmitted;
     }
 
     function getRoundExists(uint index) public view returns (bool) {
