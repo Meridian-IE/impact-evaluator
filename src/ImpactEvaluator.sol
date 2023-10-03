@@ -80,6 +80,9 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
         reward(addresses, scores);
+
+        round.end = 0;
+        round.exists = false;
         delete openRounds[roundIndex];
     }
 
