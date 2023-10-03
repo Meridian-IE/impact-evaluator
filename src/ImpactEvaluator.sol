@@ -58,6 +58,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setNextRoundLength(uint _nextRoundLength) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
     }
 
@@ -68,6 +69,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setMaxStoredRounds(uint _maxStoredRounds) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        require(_maxStoredRounds > 0, "Max stored rounds must be positive");
         if (
             _maxStoredRounds < maxStoredRounds &&
             rounds.length > _maxStoredRounds

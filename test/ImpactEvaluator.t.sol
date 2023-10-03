@@ -44,6 +44,8 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.getRoundEnd(0), block.number + 10);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.getRoundEnd(1), block.number + 20);
+        vm.expectRevert("Next round length must be positive");
+        impactEvaluator.setNextRoundLength(0);
     }
 
     function test_setRoundReward() public {
@@ -180,5 +182,7 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.maxStoredRounds(), 500);
         impactEvaluator.setMaxStoredRounds(2000);
         assertEq(impactEvaluator.maxStoredRounds(), 2000);
+        vm.expectRevert("Max stored rounds must be positive");
+        impactEvaluator.setMaxStoredRounds(0);
     }
 }
