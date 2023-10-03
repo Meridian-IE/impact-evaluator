@@ -7,7 +7,7 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
-        mapping (address => uint64) scores;
+        mapping(address => uint64) scores;
         bool scoresSubmitted;
         string summaryText;
         bool exists;
@@ -68,7 +68,10 @@ contract ImpactEvaluator is AccessControl {
 
     function setMaxStoredRounds(uint _maxStoredRounds) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        if (_maxStoredRounds < maxStoredRounds) {
+        if (
+            _maxStoredRounds < maxStoredRounds &&
+            rounds.length > _maxStoredRounds
+        ) {
             for (uint i = 0; i < rounds.length - _maxStoredRounds; i++) {
                 delete rounds[i];
             }
@@ -131,11 +134,15 @@ contract ImpactEvaluator is AccessControl {
         return rounds[index].end;
     }
 
-    function getRoundMeasurementsCids(uint index) public view returns (string[] memory) {
+    function getRoundMeasurementsCids(
+        uint index
+    ) public view returns (string[] memory) {
         return rounds[index].measurementsCids;
     }
 
-    function getRoundSummaryText(uint index) public view returns (string memory) {
+    function getRoundSummaryText(
+        uint index
+    ) public view returns (string memory) {
         return rounds[index].summaryText;
     }
 
@@ -143,7 +150,10 @@ contract ImpactEvaluator is AccessControl {
         return rounds[index].scoresSubmitted;
     }
 
-    function getParticipantScore(uint roundIndex, address participant) public view returns (uint) {
+    function getParticipantScore(
+        uint roundIndex,
+        address participant
+    ) public view returns (uint) {
         return rounds[roundIndex].scores[participant];
     }
 

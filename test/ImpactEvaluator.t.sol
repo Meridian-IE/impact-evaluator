@@ -172,4 +172,13 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
     }
+
+    function testSetMaxStoredRounds() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.maxStoredRounds(), 1000);
+        impactEvaluator.setMaxStoredRounds(500);
+        assertEq(impactEvaluator.maxStoredRounds(), 500);
+        impactEvaluator.setMaxStoredRounds(2000);
+        assertEq(impactEvaluator.maxStoredRounds(), 2000);
+    }
 }
