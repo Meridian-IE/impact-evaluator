@@ -119,7 +119,7 @@ contract ImpactEvaluator is AccessControl {
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];
         }
-        require(sum <= 1e15, "Sum of scores too big");
+        require(sum <= MAX_SCORE, "Sum of scores too big");
     }
 
     function reward(
