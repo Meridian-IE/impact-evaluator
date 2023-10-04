@@ -96,26 +96,37 @@ contract ImpactEvaluator is AccessControl {
             }
         } else {
             if (round.addresses.length > 0) {
-                uint mergedLength = round.addresses.length + addresses.length;
-                address payable[]
-                    memory mergedAddresses = new address payable[](
-                        mergedLength
-                    );
-                uint64[] memory mergedScores = new uint64[](mergedLength);
-                for (uint i = 0; i < round.addresses.length; i++) {
-                    mergedAddresses[i] = round.addresses[i];
-                    mergedScores[i] = round.scores[i];
-                }
-                for (uint i = 0; i < addresses.length; i++) {
-                    mergedAddresses[round.addresses.length + i] = addresses[i];
-                    mergedScores[round.addresses.length + i] = scores[i];
-                }
+                (
+                    address payable[] memory mergedAddresses,
+                    uint64[] memory mergedScores
+                ) = mergeScores(round, addresses, scores);
                 reward(mergedAddresses, mergedScores);
             } else {
                 reward(addresses, scores);
             }
             cleanUpRound(roundIndex);
         }
+    }
+
+    function mergeScores(
+        Round storage round,
+        address payable[] memory addresses,
+        uint64[] memory scores
+    ) private view returns (address payable[] memory, uint64[] memory) {
+        uint mergedLength = round.addresses.length + addresses.length;
+        address payable[] memory mergedAddresses = new address payable[](
+            mergedLength
+        );
+        uint64[] memory mergedScores = new uint64[](mergedLength);
+        for (uint i = 0; i < round.addresses.length; i++) {
+            mergedAddresses[i] = round.addresses[i];
+            mergedScores[i] = round.scores[i];
+        }
+        for (uint i = 0; i < addresses.length; i++) {
+            mergedAddresses[round.addresses.length + i] = addresses[i];
+            mergedScores[round.addresses.length + i] = scores[i];
+        }
+        return (mergedAddresses, mergedScores);
     }
 
     function cleanUpRound(uint roundIndex) private {
