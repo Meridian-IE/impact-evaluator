@@ -6,6 +6,8 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
+        address payable[] addresses;
+        uint64[] scores;
         bool exists;
     }
 
@@ -13,6 +15,7 @@ contract ImpactEvaluator is AccessControl {
     uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
+    uint64 public constant MAX_SCORE = 1e15;
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event RoundStart(uint roundIndex);
@@ -55,6 +58,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setNextRoundLength(uint _nextRoundLength) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
     }
 
@@ -72,18 +76,53 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint64[] memory scores
+        uint64[] memory scores,
+        bool moreScoresExpected
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
+        require(roundIndex < currentRoundIndex, "Round not finished");
+
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
-        reward(addresses, scores);
 
+        if (moreScoresExpected) {
+            for (uint i = 0; i < addresses.length; i++) {
+                round.addresses.push(addresses[i]);
+                round.scores.push(scores[i]);
+            }
+        } else {
+            if (round.addresses.length > 0) {
+                uint mergedLength = round.addresses.length + addresses.length;
+                address payable[]
+                    memory mergedAddresses = new address payable[](
+                        mergedLength
+                    );
+                uint64[] memory mergedScores = new uint64[](mergedLength);
+                for (uint i = 0; i < round.addresses.length; i++) {
+                    mergedAddresses[i] = round.addresses[i];
+                    mergedScores[i] = round.scores[i];
+                }
+                for (uint i = 0; i < addresses.length; i++) {
+                    mergedAddresses[round.addresses.length + i] = addresses[i];
+                    mergedScores[round.addresses.length + i] = scores[i];
+                }
+                reward(mergedAddresses, mergedScores);
+            } else {
+                reward(addresses, scores);
+            }
+            cleanUpRound(roundIndex);
+        }
+    }
+
+    function cleanUpRound(uint roundIndex) private {
+        Round storage round = openRounds[roundIndex];
         round.end = 0;
+        delete round.addresses;
+        delete round.scores;
         round.exists = false;
         delete openRounds[roundIndex];
     }
@@ -92,16 +131,25 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
+        validateScores(scores);
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            uint256 amount = (score * roundReward) / 1e15;
+            uint256 amount = (score * roundReward) / MAX_SCORE;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
                 emit TransferFailed(addr, amount);
             }
         }
+    }
+
+    function validateScores(uint64[] memory scores) private pure {
+        uint64 sum = 0;
+        for (uint i = 0; i < scores.length; i++) {
+            sum += scores[i];
+        }
+        require(sum <= MAX_SCORE, "Sum of scores too big");
     }
 }
