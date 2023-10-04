@@ -17,9 +17,6 @@ contract MultiTransfer is AccessControl {
     /// @notice Emitted when a transfer fails.
     event TransferFailed(address indexed to, uint256 amount);
 
-    /// @notice Emitted when the admin withdraws funds.
-    event Withdrawn(address indexed admin, uint256 amount);
-
     /**
      * @dev Sets the original `msg.sender` as the admin.
      */
@@ -39,7 +36,7 @@ contract MultiTransfer is AccessControl {
     function multiTransfer(
         address payable[] memory recipients,
         uint256[] memory amounts
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) payable {
         require(
             recipients.length == amounts.length,
             "Recipients and amounts length mismatch"
@@ -78,19 +75,4 @@ contract MultiTransfer is AccessControl {
         }
         return success;
     }
-
-    /**
-     * @notice Withdraws all funds from the contract.
-     * @dev Only callable by the admin. Emits a `Withdrawn` event on success.
-     */
-    function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No balance to withdraw");
-        bool sent = payable(msg.sender).send(balance);
-        require(sent, "Withdrawal failed");
-        emit Withdrawn(msg.sender, balance);
-    }
-
-    /// @notice Fallback function to allow the contract to accept ETH.
-    receive() external payable {}
 }
