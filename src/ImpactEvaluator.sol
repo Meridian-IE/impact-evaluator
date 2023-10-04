@@ -7,9 +7,9 @@ contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
         string[] measurementsCids;
-        mapping(address => uint64) scores;
+        address payable[] addresses;
+        uint64[] scores;
         bool scoresSubmitted;
-        string summaryText;
         bool exists;
     }
 
@@ -94,7 +94,7 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address payable[] memory addresses,
         uint64[] memory scores,
-        string memory summaryText
+        bool moreScoresExpected
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
@@ -102,30 +102,27 @@ contract ImpactEvaluator is AccessControl {
             "Addresses and scores length mismatch"
         );
         require(roundIndex < currentRoundIndex(), "Round not finished");
+
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
-        validateScores(scores);
+        
         for (uint i = 0; i < addresses.length; i++) {
-            round.scores[addresses[i]] = scores[i];
+            round.addresses.push(addresses[i]);
+            round.scores.push(scores[i]);
         }
-        round.summaryText = summaryText;
-        round.scoresSubmitted = true;
-        reward(addresses, scores);
-    }
 
-    function validateScores(uint64[] memory scores) pure private {
-        uint64 sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
+        if (!moreScoresExpected) {
+            round.scoresSubmitted = true;
+            reward(round.addresses, round.scores);
         }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
     }
 
     function reward(
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
+        validateScores(scores);
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
@@ -137,6 +134,14 @@ contract ImpactEvaluator is AccessControl {
                 emit TransferFailed(addr, amount);
             }
         }
+    }
+
+    function validateScores(uint64[] memory scores) pure private {
+        uint64 sum = 0;
+        for (uint i = 0; i < scores.length; i++) {
+            sum += scores[i];
+        }
+        require(sum <= MAX_SCORE, "Sum of scores too big");
     }
 
     function currentRoundIndex() public view returns (uint) {
@@ -154,13 +159,6 @@ contract ImpactEvaluator is AccessControl {
         return rounds[index].measurementsCids;
     }
 
-    function getRoundSummaryText(
-        uint index
-    ) public view returns (string memory) {
-        require(rounds[index].exists, "Round does not exist");
-        return rounds[index].summaryText;
-    }
-
     function getRoundScoresSubmitted(uint index) public view returns (bool) {
         require(rounds[index].exists, "Round does not exist");
         return rounds[index].scoresSubmitted;
@@ -171,7 +169,12 @@ contract ImpactEvaluator is AccessControl {
         address participant
     ) public view returns (uint) {
         require(rounds[roundIndex].exists, "Round does not exist");
-        return rounds[roundIndex].scores[participant];
+        for (uint i = 0; i < rounds[roundIndex].addresses.length; i++) {
+            if (rounds[roundIndex].addresses[i] == payable(participant)) {
+                return rounds[roundIndex].scores[i];
+            }
+        }
+        revert("Participant not found");
     }
 
     function getRoundExists(uint index) public view returns (bool) {
