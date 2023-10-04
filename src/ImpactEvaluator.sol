@@ -105,12 +105,21 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
+        validateScores(scores);
         for (uint i = 0; i < addresses.length; i++) {
             round.scores[addresses[i]] = scores[i];
         }
         round.summaryText = summaryText;
         round.scoresSubmitted = true;
         reward(addresses, scores);
+    }
+
+    function validateScores(uint64[] memory scores) pure private {
+        uint64 sum = 0;
+        for (uint i = 0; i < scores.length; i++) {
+            sum += scores[i];
+        }
+        require(sum <= 1e15, "Sum of scores too big");
     }
 
     function reward(

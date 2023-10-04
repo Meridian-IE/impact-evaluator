@@ -166,6 +166,19 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 
+    function test_SetScoresTooBig() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = 1e15 + 1;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        vm.expectRevert("Sum of scores too big");
+        impactEvaluator.setScores(0, addresses, scores, "1 task performed");
+    }
+
     function test_SetScoresUnfinishedRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         address payable[] memory addresses = new address payable[](0);
