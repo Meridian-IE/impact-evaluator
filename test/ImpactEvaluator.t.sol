@@ -166,6 +166,14 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
     }
 
+    function test_SetScoresUnfinishedRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        address payable[] memory addresses = new address payable[](0);
+        uint64[] memory scores = new uint64[](0);
+        vm.expectRevert("Round not finished");
+        impactEvaluator.setScores(0, addresses, scores, "0 tasks performed");
+    }
+
     function test_CurrentRoundMeasurementCount() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
