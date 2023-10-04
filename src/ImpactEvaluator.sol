@@ -24,30 +24,32 @@ contract ImpactEvaluator is AccessControl {
     constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        advanceRound(true);
+        initializeCurrentRound();
     }
 
     receive() external payable {}
 
-    function advanceRound(bool firstRound) private {
-        if (!firstRound) {
-            currentRoundIndex++;
-        }
+    function initializeCurrentRound() private {
         Round storage round = openRounds[currentRoundIndex];
         round.end = block.number + nextRoundLength;
         round.exists = true;
         emit RoundStart(currentRoundIndex);
     }
 
+    function advanceRound() private {
+        currentRoundIndex++;
+        initializeCurrentRound();
+    }
+
     function adminAdvanceRound() public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        advanceRound(false);
+        advanceRound();
     }
 
     function maybeAdvanceRound() private {
         uint currentRoundEnd = openRounds[currentRoundIndex].end;
         if (block.number >= currentRoundEnd) {
-            advanceRound(false);
+            advanceRound();
         }
     }
 
