@@ -106,7 +106,11 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores, false);
         assertEq(addresses[0].balance, 100 ether, "correct balance");
 
-        assertEq(impactEvaluator.getParticipantScore(0, addresses[0]), scores[0]);
+        assertEq(
+            impactEvaluator.getParticipantScore(0, addresses[0]),
+            scores[0],
+            "participant score"
+        );
         assertEq(impactEvaluator.getRoundScoresSubmitted(0), true);
 
         vm.expectRevert("Scores already submitted");

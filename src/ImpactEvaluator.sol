@@ -8,7 +8,7 @@ contract ImpactEvaluator is AccessControl {
         uint end;
         string[] measurementsCids;
         address payable[] addresses;
-        mapping(address => uint64) scores;
+        uint64[] scores;
         bool scoresSubmitted;
         string summaryText;
         bool exists;
@@ -104,9 +104,8 @@ contract ImpactEvaluator is AccessControl {
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
         for (uint i = 0; i < addresses.length; i++) {
-            require(round.scores[addresses[i]] == 0, "Address already scored");
             round.addresses.push(addresses[i]);
-            round.scores[addresses[i]] = scores[i];
+            round.scores.push(scores[i]);
         }
 
         if (!moreScoresExpected) {
@@ -117,12 +116,12 @@ contract ImpactEvaluator is AccessControl {
 
     function reward(
         address payable[] memory addresses,
-        mapping(address => uint64) storage scores
+        uint64[] memory scores
     ) private {
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
-            uint score = scores[addr];
+            uint score = scores[i];
             uint256 amount = (score * roundReward) / 1e15;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
@@ -154,7 +153,12 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address participant
     ) public view returns (uint) {
-        return rounds[roundIndex].scores[participant];
+        for (uint i = 0; i < rounds[roundIndex].addresses.length; i++) {
+            if (rounds[roundIndex].addresses[i] == payable(participant)) {
+                return rounds[roundIndex].scores[i];
+            }
+        }
+        revert("Participant not found");
     }
 
     function getRoundExists(uint index) public view returns (bool) {
