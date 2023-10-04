@@ -95,15 +95,11 @@ contract ImpactEvaluator is AccessControl {
                 round.scores.push(scores[i]);
             }
         } else {
-            if (round.addresses.length > 0) {
-                (
-                    address payable[] memory mergedAddresses,
-                    uint64[] memory mergedScores
-                ) = mergeScores(round, addresses, scores);
-                reward(mergedAddresses, mergedScores);
-            } else {
-                reward(addresses, scores);
-            }
+            (
+                address payable[] memory mergedAddresses,
+                uint64[] memory mergedScores
+            ) = mergeScores(round, addresses, scores);
+            reward(mergedAddresses, mergedScores);
             cleanUpRound(roundIndex);
         }
     }
