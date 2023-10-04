@@ -10,7 +10,6 @@ contract ImpactEvaluator is AccessControl {
         address payable[] addresses;
         uint64[] scores;
         bool scoresSubmitted;
-        string summaryText;
         bool exists;
     }
 
@@ -18,6 +17,7 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint public maxStoredRounds = 1000;
+    uint64 public constant MAX_SCORE = 1e15;
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
     event RoundStart(uint roundIndex);
@@ -59,6 +59,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setNextRoundLength(uint _nextRoundLength) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
     }
 
@@ -69,6 +70,7 @@ contract ImpactEvaluator is AccessControl {
 
     function setMaxStoredRounds(uint _maxStoredRounds) public {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        require(_maxStoredRounds > 0, "Max stored rounds must be positive");
         if (
             _maxStoredRounds < maxStoredRounds &&
             rounds.length > _maxStoredRounds
@@ -99,10 +101,12 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
+        require(roundIndex < currentRoundIndex(), "Round not finished");
 
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
+        
         for (uint i = 0; i < addresses.length; i++) {
             round.addresses.push(addresses[i]);
             round.scores.push(scores[i]);
@@ -118,11 +122,12 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
+        validateScores(scores);
         require(address(this).balance >= roundReward, "Not enough funds");
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             uint score = scores[i];
-            uint256 amount = (score * roundReward) / 1e15;
+            uint256 amount = (score * roundReward) / MAX_SCORE;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
@@ -131,11 +136,20 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
+    function validateScores(uint64[] memory scores) pure private {
+        uint64 sum = 0;
+        for (uint i = 0; i < scores.length; i++) {
+            sum += scores[i];
+        }
+        require(sum <= MAX_SCORE, "Sum of scores too big");
+    }
+
     function currentRoundIndex() public view returns (uint) {
         return rounds.length - 1;
     }
 
     function getRoundEnd(uint index) public view returns (uint) {
+        require(rounds[index].exists, "Round does not exist");
         return rounds[index].end;
     }
 
@@ -146,6 +160,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function getRoundScoresSubmitted(uint index) public view returns (bool) {
+        require(rounds[index].exists, "Round does not exist");
         return rounds[index].scoresSubmitted;
     }
 
@@ -153,6 +168,7 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address participant
     ) public view returns (uint) {
+        require(rounds[roundIndex].exists, "Round does not exist");
         for (uint i = 0; i < rounds[roundIndex].addresses.length; i++) {
             if (rounds[roundIndex].addresses[i] == payable(participant)) {
                 return rounds[roundIndex].scores[i];

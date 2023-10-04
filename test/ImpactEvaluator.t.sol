@@ -44,6 +44,8 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.getRoundEnd(0), block.number + 10);
         impactEvaluator.adminAdvanceRound();
         assertEq(impactEvaluator.getRoundEnd(1), block.number + 20);
+        vm.expectRevert("Next round length must be positive");
+        impactEvaluator.setNextRoundLength(0);
     }
 
     function test_setRoundReward() public {
@@ -99,7 +101,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
-        scores[0] = 1e15;
+        scores[0] = impactEvaluator.MAX_SCORE();
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 100 ether);
@@ -145,7 +147,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(2));
         uint64[] memory scores = new uint64[](2);
-        scores[0] = 1e15 - 1;
+        scores[0] = impactEvaluator.MAX_SCORE() - 1;
         scores[1] = 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
@@ -183,6 +185,27 @@ contract ImpactEvaluatorTest is Test {
         assertEq(vm.addr(2).balance, 1e5, "vm.addr(2) balance");
     }
 
+    function test_SetScoresTooBig() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE() + 1;
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        vm.expectRevert("Sum of scores too big");
+        impactEvaluator.setScores(0, addresses, scores, false);
+    }
+
+    function test_SetScoresUnfinishedRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        address payable[] memory addresses = new address payable[](0);
+        uint64[] memory scores = new uint64[](0);
+        vm.expectRevert("Round not finished");
+        impactEvaluator.setScores(0, addresses, scores, false);
+    }
+
     function test_CurrentRoundMeasurementCount() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundMeasurementCount(), 0);
@@ -199,5 +222,7 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.maxStoredRounds(), 500);
         impactEvaluator.setMaxStoredRounds(2000);
         assertEq(impactEvaluator.maxStoredRounds(), 2000);
+        vm.expectRevert("Max stored rounds must be positive");
+        impactEvaluator.setMaxStoredRounds(0);
     }
 }
