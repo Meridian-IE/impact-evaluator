@@ -93,8 +93,7 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint64[] memory scores,
-        bool moreScoresExpected
+        uint64[] memory scores
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
@@ -106,16 +105,26 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = rounds[roundIndex];
         require(round.exists, "Round does not exist");
         require(!round.scoresSubmitted, "Scores already submitted");
-        
+
         for (uint i = 0; i < addresses.length; i++) {
             round.addresses.push(addresses[i]);
             round.scores.push(scores[i]);
         }
 
-        if (!moreScoresExpected) {
+        if (allScoresSubmitted(round)) {
             round.scoresSubmitted = true;
             reward(round.addresses, round.scores);
         }
+    }
+
+    function allScoresSubmitted(
+        Round storage round
+    ) private view returns (bool) {
+        uint totalScore = 0;
+        for (uint i = 0; i < round.scores.length; i++) {
+            totalScore += round.scores[i];
+        }
+        return totalScore >= MAX_SCORE;
     }
 
     function reward(
@@ -136,7 +145,7 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function validateScores(uint64[] memory scores) pure private {
+    function validateScores(uint64[] memory scores) private pure {
         uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];

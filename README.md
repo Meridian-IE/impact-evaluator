@@ -9,7 +9,7 @@
 
 ## Evaluator functions
 
-### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores, bool moreScoresExpected)`
+### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
 
 ## Admin functions
 

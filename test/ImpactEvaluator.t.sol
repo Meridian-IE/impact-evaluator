@@ -78,8 +78,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             0,
             new address payable[](0),
-            new uint64[](0),
-            false
+            new uint64[](0)
         );
     }
 
@@ -94,8 +93,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(
             0,
             new address payable[](1),
-            new uint64[](0),
-            false
+            new uint64[](0)
         );
 
         address payable[] memory addresses = new address payable[](1);
@@ -105,7 +103,7 @@ contract ImpactEvaluatorTest is Test {
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 100 ether, "correct balance");
 
         assertEq(
@@ -116,7 +114,7 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.getRoundScoresSubmitted(0), true);
 
         vm.expectRevert("Scores already submitted");
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleParticipants() public {
@@ -133,7 +131,7 @@ contract ImpactEvaluatorTest is Test {
         scores[1] = 25e13;
         scores[2] = 25e13;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 50 ether, "addresses[0] balance");
         assertEq(addresses[1].balance, 25 ether);
         assertEq(addresses[2].balance, 25 ether);
@@ -154,7 +152,7 @@ contract ImpactEvaluatorTest is Test {
         emit Transfer(addresses[0], 100 ether - 1e5);
         vm.expectEmit(false, false, false, true);
         emit Transfer(addresses[0], 1e5);
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(addresses[0].balance, 100 ether - 1e5, "addresses[0] balance");
         assertEq(addresses[1].balance, 1e5, "addresses[1] balance");
     }
@@ -166,7 +164,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleCalls() public {
@@ -176,11 +174,11 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
         scores[0] = 1e15 - 1;
-        impactEvaluator.setScores(0, addresses, scores, true);
+        impactEvaluator.setScores(0, addresses, scores);
         addresses[0] = payable(vm.addr(2));
         scores[0] = 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
         assertEq(vm.addr(1).balance, 100 ether - 1e5, "vm.addr(1) balance");
         assertEq(vm.addr(2).balance, 1e5, "vm.addr(2) balance");
     }
@@ -195,7 +193,7 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE() + 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectRevert("Sum of scores too big");
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresUnfinishedRound() public {
@@ -203,7 +201,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
         vm.expectRevert("Round not finished");
-        impactEvaluator.setScores(0, addresses, scores, false);
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_CurrentRoundMeasurementCount() public {
