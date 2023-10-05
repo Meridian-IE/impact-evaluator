@@ -58,11 +58,7 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresNotEvaluator() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an evaluator");
-        impactEvaluator.setScores(
-            0,
-            new address payable[](0),
-            new uint64[](0)
-        );
+        impactEvaluator.setScores(0, new address payable[](0), new uint64[](0));
     }
 
     function test_SetScores() public {
@@ -73,11 +69,7 @@ contract ImpactEvaluatorTest is Test {
             address(this)
         );
         vm.expectRevert("Addresses and scores length mismatch");
-        impactEvaluator.setScores(
-            0,
-            new address payable[](1),
-            new uint64[](0)
-        );
+        impactEvaluator.setScores(0, new address payable[](1), new uint64[](0));
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
@@ -156,7 +148,11 @@ contract ImpactEvaluatorTest is Test {
             impactEvaluator.setScores(0, addresses, scores);
         }
         for (uint i = 0; i < iterations; i++) {
-            assertEq(vm.addr(i + 1).balance, 100 ether / iterations, "right balance");
+            assertEq(
+                vm.addr(i + 1).balance,
+                100 ether / iterations,
+                "right balance"
+            );
         }
     }
 
