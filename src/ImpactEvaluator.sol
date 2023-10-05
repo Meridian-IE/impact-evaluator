@@ -100,7 +100,7 @@ contract ImpactEvaluator is AccessControl {
                 uint64[] memory mergedScores
             ) = mergeScores(round, addresses, scores);
             reward(mergedAddresses, mergedScores);
-            cleanUpRound(roundIndex);
+            cleanUpRound(round, roundIndex);
         }
     }
 
@@ -125,8 +125,7 @@ contract ImpactEvaluator is AccessControl {
         return (mergedAddresses, mergedScores);
     }
 
-    function cleanUpRound(uint roundIndex) private {
-        Round storage round = openRounds[roundIndex];
+    function cleanUpRound(Round storage round, uint roundIndex) private {
         round.end = 0;
         delete round.addresses;
         delete round.scores;
