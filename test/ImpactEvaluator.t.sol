@@ -148,17 +148,18 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresMultipleCalls() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        address payable[] memory addresses = new address payable[](1);
-        addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
-        scores[0] = 1e15 - 1;
-        impactEvaluator.setScores(0, addresses, scores, true);
-        addresses[0] = payable(vm.addr(2));
-        scores[0] = 1;
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setScores(0, addresses, scores, false);
-        assertEq(vm.addr(1).balance, 100 ether - 1e5, "vm.addr(1) balance");
-        assertEq(vm.addr(2).balance, 1e5, "vm.addr(2) balance");
+        uint64 iterations = 10;
+        for (uint i = 0; i < iterations; i++) {
+            address payable[] memory addresses = new address payable[](1);
+            addresses[0] = payable(vm.addr(i + 1));
+            uint64[] memory scores = new uint64[](1);
+            scores[0] = impactEvaluator.MAX_SCORE() / iterations;
+            impactEvaluator.setScores(0, addresses, scores, i < iterations - 1);
+        }
+        for (uint i = 0; i < iterations; i++) {
+            assertEq(vm.addr(i + 1).balance, 100 ether / iterations, "right balance");
+        }
     }
 
     function test_SetScoresTooBig() public {
