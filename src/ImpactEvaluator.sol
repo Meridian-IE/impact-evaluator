@@ -76,8 +76,7 @@ contract ImpactEvaluator is AccessControl {
     function setScores(
         uint roundIndex,
         address payable[] memory addresses,
-        uint64[] memory scores,
-        bool moreScoresExpected
+        uint64[] memory scores
     ) public {
         require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
         require(
@@ -89,40 +88,15 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
 
-        if (moreScoresExpected) {
-            for (uint i = 0; i < addresses.length; i++) {
-                round.addresses.push(addresses[i]);
-                round.scores.push(scores[i]);
-            }
-        } else {
-            (
-                address payable[] memory mergedAddresses,
-                uint64[] memory mergedScores
-            ) = mergeScores(round, addresses, scores);
-            reward(mergedAddresses, mergedScores);
+        for (uint i = 0; i < addresses.length; i++) {
+            round.addresses.push(addresses[i]);
+            round.scores.push(scores[i]);
+        }
+
+        if (allScoresSubmitted(round.scores)) {
+            reward(round.addresses, round.scores);
             cleanUpRound(round, roundIndex);
         }
-    }
-
-    function mergeScores(
-        Round storage round,
-        address payable[] memory addresses,
-        uint64[] memory scores
-    ) private view returns (address payable[] memory, uint64[] memory) {
-        uint mergedLength = round.addresses.length + addresses.length;
-        address payable[] memory mergedAddresses = new address payable[](
-            mergedLength
-        );
-        uint64[] memory mergedScores = new uint64[](mergedLength);
-        for (uint i = 0; i < round.addresses.length; i++) {
-            mergedAddresses[i] = round.addresses[i];
-            mergedScores[i] = round.scores[i];
-        }
-        for (uint i = 0; i < addresses.length; i++) {
-            mergedAddresses[round.addresses.length + i] = addresses[i];
-            mergedScores[round.addresses.length + i] = scores[i];
-        }
-        return (mergedAddresses, mergedScores);
     }
 
     function cleanUpRound(Round storage round, uint roundIndex) private {
@@ -131,6 +105,16 @@ contract ImpactEvaluator is AccessControl {
         delete round.scores;
         round.exists = false;
         delete openRounds[roundIndex];
+    }
+
+    function allScoresSubmitted(
+        uint64[] memory scores
+    ) private pure returns (bool) {
+        uint totalScore = 0;
+        for (uint i = 0; i < scores.length; i++) {
+            totalScore += scores[i];
+        }
+        return totalScore >= MAX_SCORE;
     }
 
     function reward(
