@@ -6,17 +6,15 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
-        string[] measurementsCids;
         address payable[] addresses;
         uint64[] scores;
-        bool scoresSubmitted;
         bool exists;
     }
 
-    Round[] public rounds;
+    mapping(uint => Round) public openRounds;
+    uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
-    uint public maxStoredRounds = 1000;
     uint64 public constant MAX_SCORE = 1e15;
 
     event MeasurementsAdded(string cid, uint roundIndex, address sender);
@@ -29,20 +27,21 @@ contract ImpactEvaluator is AccessControl {
     constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        advanceRound();
+        initializeCurrentRound();
     }
 
     receive() external payable {}
 
-    function advanceRound() private {
-        rounds.push();
-        Round storage round = rounds[rounds.length - 1];
+    function initializeCurrentRound() private {
+        Round storage round = openRounds[currentRoundIndex];
         round.end = block.number + nextRoundLength;
         round.exists = true;
-        emit RoundStart(currentRoundIndex());
-        if (rounds.length > maxStoredRounds) {
-            delete rounds[rounds.length - maxStoredRounds - 1];
-        }
+        emit RoundStart(currentRoundIndex);
+    }
+
+    function advanceRound() private {
+        currentRoundIndex++;
+        initializeCurrentRound();
     }
 
     function adminAdvanceRound() public {
@@ -51,7 +50,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundEnd = rounds[currentRoundIndex()].end;
+        uint currentRoundEnd = openRounds[currentRoundIndex].end;
         if (block.number >= currentRoundEnd) {
             advanceRound();
         }
@@ -68,26 +67,10 @@ contract ImpactEvaluator is AccessControl {
         roundReward = _roundReward;
     }
 
-    function setMaxStoredRounds(uint _maxStoredRounds) public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
-        require(_maxStoredRounds > 0, "Max stored rounds must be positive");
-        if (
-            _maxStoredRounds < maxStoredRounds &&
-            rounds.length > _maxStoredRounds
-        ) {
-            for (uint i = 0; i < rounds.length - _maxStoredRounds; i++) {
-                delete rounds[i];
-            }
-        }
-        maxStoredRounds = _maxStoredRounds;
-    }
-
     function addMeasurements(string memory cid) public returns (uint) {
         maybeAdvanceRound();
-        uint roundIndex = currentRoundIndex();
-        rounds[roundIndex].measurementsCids.push(cid);
-        emit MeasurementsAdded(cid, roundIndex, msg.sender);
-        return roundIndex;
+        emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
+        return currentRoundIndex;
     }
 
     function setScores(
@@ -101,21 +84,53 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRoundIndex(), "Round not finished");
+        require(roundIndex < currentRoundIndex, "Round not finished");
 
-        Round storage round = rounds[roundIndex];
-        require(round.exists, "Round does not exist");
-        require(!round.scoresSubmitted, "Scores already submitted");
-        
+        Round storage round = openRounds[roundIndex];
+        require(round.exists, "Open round does not exist");
+
+        if (moreScoresExpected) {
+            for (uint i = 0; i < addresses.length; i++) {
+                round.addresses.push(addresses[i]);
+                round.scores.push(scores[i]);
+            }
+        } else {
+            (
+                address payable[] memory mergedAddresses,
+                uint64[] memory mergedScores
+            ) = mergeScores(round, addresses, scores);
+            reward(mergedAddresses, mergedScores);
+            cleanUpRound(round, roundIndex);
+        }
+    }
+
+    function mergeScores(
+        Round storage round,
+        address payable[] memory addresses,
+        uint64[] memory scores
+    ) private view returns (address payable[] memory, uint64[] memory) {
+        uint mergedLength = round.addresses.length + addresses.length;
+        address payable[] memory mergedAddresses = new address payable[](
+            mergedLength
+        );
+        uint64[] memory mergedScores = new uint64[](mergedLength);
+        for (uint i = 0; i < round.addresses.length; i++) {
+            mergedAddresses[i] = round.addresses[i];
+            mergedScores[i] = round.scores[i];
+        }
         for (uint i = 0; i < addresses.length; i++) {
-            round.addresses.push(addresses[i]);
-            round.scores.push(scores[i]);
+            mergedAddresses[round.addresses.length + i] = addresses[i];
+            mergedScores[round.addresses.length + i] = scores[i];
         }
+        return (mergedAddresses, mergedScores);
+    }
 
-        if (!moreScoresExpected) {
-            round.scoresSubmitted = true;
-            reward(round.addresses, round.scores);
-        }
+    function cleanUpRound(Round storage round, uint roundIndex) private {
+        round.end = 0;
+        delete round.addresses;
+        delete round.scores;
+        round.exists = false;
+        delete openRounds[roundIndex];
     }
 
     function reward(
@@ -136,52 +151,11 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function validateScores(uint64[] memory scores) pure private {
+    function validateScores(uint64[] memory scores) private pure {
         uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];
         }
         require(sum <= MAX_SCORE, "Sum of scores too big");
-    }
-
-    function currentRoundIndex() public view returns (uint) {
-        return rounds.length - 1;
-    }
-
-    function getRoundEnd(uint index) public view returns (uint) {
-        require(rounds[index].exists, "Round does not exist");
-        return rounds[index].end;
-    }
-
-    function getRoundMeasurementsCids(
-        uint index
-    ) public view returns (string[] memory) {
-        return rounds[index].measurementsCids;
-    }
-
-    function getRoundScoresSubmitted(uint index) public view returns (bool) {
-        require(rounds[index].exists, "Round does not exist");
-        return rounds[index].scoresSubmitted;
-    }
-
-    function getParticipantScore(
-        uint roundIndex,
-        address participant
-    ) public view returns (uint) {
-        require(rounds[roundIndex].exists, "Round does not exist");
-        for (uint i = 0; i < rounds[roundIndex].addresses.length; i++) {
-            if (rounds[roundIndex].addresses[i] == payable(participant)) {
-                return rounds[roundIndex].scores[i];
-            }
-        }
-        revert("Participant not found");
-    }
-
-    function getRoundExists(uint index) public view returns (bool) {
-        return rounds[index].exists;
-    }
-
-    function currentRoundMeasurementCount() public view returns (uint) {
-        return rounds[currentRoundIndex()].measurementsCids.length;
     }
 }
