@@ -44,8 +44,7 @@ contract ImpactEvaluator is AccessControl {
         initializeCurrentRound();
     }
 
-    function adminAdvanceRound() public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+    function adminAdvanceRound() public onlyAdmin() {
         advanceRound();
     }
 
@@ -56,14 +55,12 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function setNextRoundLength(uint _nextRoundLength) public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+    function setNextRoundLength(uint _nextRoundLength) public onlyAdmin() {
         require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
     }
 
-    function setRoundReward(uint _roundReward) public {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+    function setRoundReward(uint _roundReward) public onlyAdmin() {
         roundReward = _roundReward;
     }
 
@@ -77,8 +74,7 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address payable[] memory addresses,
         uint64[] memory scores
-    ) public {
-        require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
+    ) public onlyEvaluator() {
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
@@ -141,5 +137,15 @@ contract ImpactEvaluator is AccessControl {
             sum += scores[i];
         }
         require(sum <= MAX_SCORE, "Sum of scores too big");
+    }
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
+        _;
+    }
+
+    modifier onlyEvaluator() {
+        require(hasRole(EVALUATE_ROLE, msg.sender), "Not an evaluator");
+        _;
     }
 }
