@@ -6,9 +6,8 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
-        address payable[] addresses;
-        uint64[] scores;
         bool exists;
+        uint totalScores;
     }
 
     mapping(uint => Round) public openRounds;
@@ -16,7 +15,6 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
-    uint public constant MAX_SCORES_PER_ROUND = 200000;
 
     event MeasurementsAdded(
         string cid,
@@ -85,58 +83,54 @@ contract ImpactEvaluator is AccessControl {
             "Addresses and scores length mismatch"
         );
         require(roundIndex < currentRoundIndex, "Round not finished");
-        require(
-            addresses.length <= MAX_SCORES_PER_ROUND,
-            "Too many scores submitted"
-        );
 
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
 
-        require(
-            addresses.length + round.addresses.length <= MAX_SCORES_PER_ROUND,
-            "Too many scores submitted"
-        );
+        uint sumOfScores = validateScores(scores, round.totalScores);
+        reward(addresses, scores);
+        round.totalScores += sumOfScores;
 
-        for (uint i = 0; i < addresses.length; i++) {
-            round.addresses.push(addresses[i]);
-            round.scores.push(scores[i]);
-        }
-
-        if (allScoresSubmitted(round.scores)) {
-            reward(round.addresses, round.scores);
+        if (round.totalScores == MAX_SCORE) {
             cleanUpRound(round, roundIndex);
         }
     }
 
-    function cleanUpRound(Round storage round, uint roundIndex) private {
-        round.end = 0;
-        delete round.addresses;
-        delete round.scores;
-        round.exists = false;
-        delete openRounds[roundIndex];
-    }
-
-    function allScoresSubmitted(
-        uint64[] memory scores
-    ) private pure returns (bool) {
-        uint totalScore = 0;
+    function validateScores(
+        uint64[] memory scores,
+        uint scoresAlreadySubmitted
+    ) private pure returns (uint) {
+        uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
-            totalScore += scores[i];
+            sum += scores[i];
         }
-        return totalScore >= MAX_SCORE;
+        require(sum <= MAX_SCORE, "Sum of scores too big");
+        require(
+            sum + scoresAlreadySubmitted <= MAX_SCORE,
+            "Sum of scores including historic too big"
+        );
+        return sum;
     }
 
     function reward(
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
-        validateScores(scores);
-        require(address(this).balance >= roundReward, "Not enough funds");
+        uint totalAmount = 0;
+        uint[] memory amounts = new uint[](addresses.length);
+
         for (uint i = 0; i < addresses.length; i++) {
-            address payable addr = addresses[i];
             uint score = scores[i];
             uint256 amount = (score * roundReward) / MAX_SCORE;
+            amounts[i] = amount;
+            totalAmount += amount;
+        }
+
+        require(address(this).balance >= totalAmount, "Not enough funds");
+
+        for (uint i = 0; i < addresses.length; i++) {
+            address payable addr = addresses[i];
+            uint256 amount = amounts[i];
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
@@ -145,12 +139,11 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function validateScores(uint64[] memory scores) private pure {
-        uint64 sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
-        }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
+    function cleanUpRound(Round storage round, uint roundIndex) private {
+        round.end = 0;
+        round.totalScores = 0;
+        round.exists = false;
+        delete openRounds[roundIndex];
     }
 
     modifier onlyAdmin() {

@@ -16,7 +16,7 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        (uint end, ) = impactEvaluator.openRounds(0);
+        (uint end, , ) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
@@ -26,13 +26,13 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetNextRoundLength() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        (uint end, ) = impactEvaluator.openRounds(0);
+        (uint end, , ) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         impactEvaluator.setNextRoundLength(20);
-        (end, ) = impactEvaluator.openRounds(0);
+        (end, , ) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         impactEvaluator.adminAdvanceRound();
-        (end, ) = impactEvaluator.openRounds(1);
+        (end, , ) = impactEvaluator.openRounds(1);
         assertEq(end, block.number + 20);
         vm.expectRevert("Next round length must be positive");
         impactEvaluator.setNextRoundLength(0);
@@ -173,60 +173,20 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
-    function test_SetScoresAtLimit() public {
+    function test_SetScoresTooBigHistoric() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
         vm.deal(payable(address(impactEvaluator)), 100 ether);
 
-        // The most scores we can submit to one round before running out of gas
-        uint64 totalParticipants = uint64(
-            impactEvaluator.MAX_SCORES_PER_ROUND()
-        );
-        // With all scores in one call we also run out of gas
-        uint64 calls = 2;
-        for (uint j = 0; j < calls; j++) {
-            uint participants = totalParticipants / calls;
-            address payable[] memory addresses = new address payable[](
-                participants
-            );
-            uint64[] memory scores = new uint64[](participants);
-            for (uint i = 0; i < participants; i++) {
-                addresses[i] = payable(vm.addr(1));
-                scores[i] = impactEvaluator.MAX_SCORE() / totalParticipants;
-            }
-            impactEvaluator.setScores(0, addresses, scores);
-        }
-
-        assertEq(vm.addr(1).balance, 100 ether, "participant balance");
-    }
-
-    function test_SetScoresTooMany() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        impactEvaluator.adminAdvanceRound();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
-
-        uint64 totalParticipants = uint64(
-            impactEvaluator.MAX_SCORES_PER_ROUND()
-        ) * 2;
-        // With too many scores per round we run out of gas submitting them
-        // before the limit is reached
-        uint64 calls = 6;
-        uint64 failingCall = 3;
-        for (uint j = 0; j < failingCall; j++) {
-            uint participants = totalParticipants / calls;
-            address payable[] memory addresses = new address payable[](
-                participants
-            );
-            uint64[] memory scores = new uint64[](participants);
-            for (uint i = 0; i < participants; i++) {
-                addresses[i] = payable(vm.addr(1));
-                scores[i] = impactEvaluator.MAX_SCORE() / totalParticipants;
-            }
-            if (j == failingCall) {
-                vm.expectRevert("Too many scores submitted");
-            }
-            impactEvaluator.setScores(0, addresses, scores);
-        }
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE() - 1;
+        impactEvaluator.setScores(0, addresses, scores);
+    
+        scores[0] = 2;
+        vm.expectRevert("Sum of scores including historic too big");
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresUnfinishedRound() public {
