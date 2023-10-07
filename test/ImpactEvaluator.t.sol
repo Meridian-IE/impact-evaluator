@@ -173,6 +173,56 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
+    function test_SetScoresAtLimit() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        // The most scores we can submit to one round before running out of gas
+        uint64 totalParticipants = uint64(impactEvaluator.MAX_SCORES_PER_ROUND());
+        // With all scores in one call we also run out of gas
+        uint64 calls = 2;
+        for (uint j = 0; j < calls; j++) {
+            uint participants = totalParticipants / calls;
+            address payable[] memory addresses = new address payable[](
+                participants
+            );
+            uint64[] memory scores = new uint64[](participants);
+            for (uint i = 0; i < participants; i++) {
+                addresses[i] = payable(vm.addr(1));
+                scores[i] = impactEvaluator.MAX_SCORE() / totalParticipants;
+            }
+            impactEvaluator.setScores(0, addresses, scores);
+        }
+
+        assertEq(vm.addr(1).balance, 100 ether, "participant balance");
+    }
+
+    function test_SetScoresTooMany() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        uint64 totalParticipants = uint64(impactEvaluator.MAX_SCORES_PER_ROUND()) * 2;
+        uint64 calls = 12;
+        uint64 failingCall = 6;
+        for (uint j = 0; j < failingCall; j++) {
+            uint participants = totalParticipants / calls;
+            address payable[] memory addresses = new address payable[](
+                participants
+            );
+            uint64[] memory scores = new uint64[](participants);
+            for (uint i = 0; i < participants; i++) {
+                addresses[i] = payable(vm.addr(1));
+                scores[i] = impactEvaluator.MAX_SCORE() / totalParticipants;
+            }
+            if (j == failingCall) {
+                vm.expectRevert("Too many scores submitted");
+            }
+            impactEvaluator.setScores(0, addresses, scores);
+        }
+    }
+
     function test_SetScoresUnfinishedRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         address payable[] memory addresses = new address payable[](0);

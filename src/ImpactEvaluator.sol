@@ -16,6 +16,7 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
+    uint public constant MAX_SCORES_PER_ROUND = 200000;
 
     event MeasurementsAdded(
         string cid,
@@ -84,9 +85,18 @@ contract ImpactEvaluator is AccessControl {
             "Addresses and scores length mismatch"
         );
         require(roundIndex < currentRoundIndex, "Round not finished");
+        require(
+            addresses.length <= MAX_SCORES_PER_ROUND,
+            "Too many scores submitted"
+        );
 
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
+
+        require(
+            addresses.length + round.addresses.length <= MAX_SCORES_PER_ROUND,
+            "Too many scores submitted"
+        );
 
         for (uint i = 0; i < addresses.length; i++) {
             round.addresses.push(addresses[i]);
