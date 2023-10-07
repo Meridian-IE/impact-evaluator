@@ -92,7 +92,7 @@ contract ImpactEvaluator is AccessControl {
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            cleanUpRound(round, roundIndex);
+            delete openRounds[roundIndex];
         }
     }
 
@@ -137,13 +137,6 @@ contract ImpactEvaluator is AccessControl {
                 emit TransferFailed(addr, amount);
             }
         }
-    }
-
-    function cleanUpRound(Round storage round, uint roundIndex) private {
-        round.end = 0;
-        round.totalScores = 0;
-        round.exists = false;
-        delete openRounds[roundIndex];
     }
 
     modifier onlyAdmin() {
