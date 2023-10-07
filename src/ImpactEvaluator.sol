@@ -48,7 +48,7 @@ contract ImpactEvaluator is AccessControl {
         initializeCurrentRound();
     }
 
-    function adminAdvanceRound() public onlyAdmin() {
+    function adminAdvanceRound() public onlyAdmin {
         advanceRound();
     }
 
@@ -59,12 +59,12 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function setNextRoundLength(uint _nextRoundLength) public onlyAdmin() {
+    function setNextRoundLength(uint _nextRoundLength) public onlyAdmin {
         require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
     }
 
-    function setRoundReward(uint _roundReward) public onlyAdmin() {
+    function setRoundReward(uint _roundReward) public onlyAdmin {
         roundReward = _roundReward;
     }
 
@@ -78,7 +78,7 @@ contract ImpactEvaluator is AccessControl {
         uint roundIndex,
         address payable[] memory addresses,
         uint64[] memory scores
-    ) public onlyEvaluator() {
+    ) public onlyEvaluator {
         require(
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
