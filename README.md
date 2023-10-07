@@ -34,7 +34,7 @@
 
 ## Events
 
-### `MeasurementsAdded(string cid, uint roundIndex, address sender)`
+### `MeasurementsAdded(string cid, uint roundIndex, address indexed sender)`
 
 ### `RoundStart(uint roundIndex)`
 

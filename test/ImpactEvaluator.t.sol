@@ -6,7 +6,11 @@ import "../src/ImpactEvaluator.sol";
 
 contract ImpactEvaluatorTest is Test {
     event RoundStart(uint roundIndex);
-    event MeasurementsAdded(string cid, uint roundIndex, address sender);
+    event MeasurementsAdded(
+        string cid,
+        uint roundIndex,
+        address indexed sender
+    );
     event Transfer(address indexed to, uint256 amount);
 
     function test_AdvanceRound() public {

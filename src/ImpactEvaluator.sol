@@ -17,7 +17,11 @@ contract ImpactEvaluator is AccessControl {
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
 
-    event MeasurementsAdded(string cid, uint roundIndex, address sender);
+    event MeasurementsAdded(
+        string cid,
+        uint roundIndex,
+        address indexed sender
+    );
     event RoundStart(uint roundIndex);
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
