@@ -179,7 +179,9 @@ contract ImpactEvaluatorTest is Test {
         vm.deal(payable(address(impactEvaluator)), 100 ether);
 
         // The most scores we can submit to one round before running out of gas
-        uint64 totalParticipants = uint64(impactEvaluator.MAX_SCORES_PER_ROUND());
+        uint64 totalParticipants = uint64(
+            impactEvaluator.MAX_SCORES_PER_ROUND()
+        );
         // With all scores in one call we also run out of gas
         uint64 calls = 2;
         for (uint j = 0; j < calls; j++) {
@@ -203,9 +205,13 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         vm.deal(payable(address(impactEvaluator)), 100 ether);
 
-        uint64 totalParticipants = uint64(impactEvaluator.MAX_SCORES_PER_ROUND()) * 2;
-        uint64 calls = 12;
-        uint64 failingCall = 6;
+        uint64 totalParticipants = uint64(
+            impactEvaluator.MAX_SCORES_PER_ROUND()
+        ) * 2;
+        // With too many scores per round we run out of gas submitting them
+        // before the limit is reached
+        uint64 calls = 6;
+        uint64 failingCall = 3;
         for (uint j = 0; j < failingCall; j++) {
             uint participants = totalParticipants / calls;
             address payable[] memory addresses = new address payable[](
