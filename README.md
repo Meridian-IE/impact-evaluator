@@ -12,6 +12,9 @@
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
 
+Once a round's scores sum up to `MAX_SCORE = 1e15`, the `reward()` function
+will be called and the round finishes.
+
 ## Admin functions
 
 ### `.adminAdvanceRound()`
