@@ -211,4 +211,28 @@ contract ImpactEvaluatorTest is Test {
         vm.expectRevert("Round not finished");
         impactEvaluator.setScores(0, addresses, scores);
     }
+
+    function test_OpenRoundIndexes() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        
+        uint[] memory openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
+        assertEq(openRoundIndexes.length, 1, "one open round index");
+        assertEq(openRoundIndexes[0], 0, "round 0");
+
+        impactEvaluator.adminAdvanceRound();
+        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
+        assertEq(openRoundIndexes.length, 2, "two open round index");
+        assertEq(openRoundIndexes[1], 1, "round 1");
+
+        address payable[] memory addresses = new address payable[](1);
+        uint64[] memory scores = new uint64[](1);
+        addresses[0] = payable(vm.addr(1));
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
+        assertEq(openRoundIndexes.length, 1, "one open round index");
+        assertEq(openRoundIndexes[0], 1, "round 1");
+    }
 }

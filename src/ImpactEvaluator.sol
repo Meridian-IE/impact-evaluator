@@ -11,6 +11,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     mapping(uint => Round) public openRounds;
+    uint[] public openRoundIndexes;
     uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -39,6 +40,7 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = openRounds[currentRoundIndex];
         round.end = block.number + nextRoundLength;
         round.exists = true;
+        openRoundIndexes.push(currentRoundIndex);
         emit RoundStart(currentRoundIndex);
     }
 
@@ -92,8 +94,30 @@ contract ImpactEvaluator is AccessControl {
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            delete openRounds[roundIndex];
+            deleteRound(roundIndex);
         }
+    }
+
+    function deleteRound(uint roundIndex) private {
+        delete openRounds[roundIndex];
+
+        // Find index inside `openRoundIndexes` and remove it while shrinking
+        // the array.
+        uint openRoundIndexesIndex;
+        for (uint i = 0; i < openRoundIndexes.length; i++) {
+            if (openRoundIndexes[i] == roundIndex) {
+                openRoundIndexesIndex = i;
+                break;
+            }
+        }
+        for (
+            uint i = openRoundIndexesIndex;
+            i < openRoundIndexes.length - 1;
+            i++
+        ) {
+            openRoundIndexes[i] = openRoundIndexes[i + 1];
+        }
+        openRoundIndexes.pop();
     }
 
     function validateScores(
@@ -137,6 +161,10 @@ contract ImpactEvaluator is AccessControl {
                 emit TransferFailed(addr, amount);
             }
         }
+    }
+
+    function getOpenRoundIndexes() public view returns (uint[] memory) {
+        return openRoundIndexes;
     }
 
     modifier onlyAdmin() {

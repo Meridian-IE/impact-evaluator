@@ -24,9 +24,11 @@
 
 ### `.currentRoundIndex() -> uint`
 
-### `.nextRoundLength()`
+### `.nextRoundLength() -> uint`
 
-### `.roundReward()`
+### `.roundReward() -> uint`
+
+### `.getOpenRoundIndexes() -> uint[]`
 
 ## Roles
 
