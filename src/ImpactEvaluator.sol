@@ -68,7 +68,7 @@ contract ImpactEvaluator is AccessControl {
         roundReward = _roundReward;
     }
 
-    function addMeasurements(string memory cid) public returns (uint) {
+    function addMeasurements(string memory cid) public virtual returns (uint) {
         maybeAdvanceRound();
         emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
         return currentRoundIndex;
