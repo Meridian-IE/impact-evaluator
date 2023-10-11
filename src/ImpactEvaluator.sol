@@ -120,6 +120,10 @@ contract ImpactEvaluator is AccessControl {
         openRoundIndexes.pop();
     }
 
+    function adminDeleteRound(uint roundIndex) public onlyAdmin {
+        deleteRound(roundIndex);
+    }
+
     function validateScores(
         uint64[] memory scores,
         uint scoresAlreadySubmitted

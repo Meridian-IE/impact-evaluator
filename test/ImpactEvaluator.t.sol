@@ -234,5 +234,11 @@ contract ImpactEvaluatorTest is Test {
         openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
         assertEq(openRoundIndexes.length, 1, "one open round index");
         assertEq(openRoundIndexes[0], 1, "round 1");
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminDeleteRound(1);
+        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
+        assertEq(openRoundIndexes.length, 1, "one open round index");
+        assertEq(openRoundIndexes[0], 2, "round 2");
     }
 }

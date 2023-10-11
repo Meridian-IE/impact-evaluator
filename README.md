@@ -16,6 +16,8 @@
 
 ### `.adminAdvanceRound()`
 
+### `.adminDeleteRound(uint openRoundIndex)`
+
 ### `.setNextRoundLength(uint nextRoundLength)`
 
 ### `.setRoundReward(uint roundReward)`
