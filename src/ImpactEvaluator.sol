@@ -121,6 +121,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function adminDeleteRound(uint roundIndex) public onlyAdmin {
+        require(roundIndex < currentRoundIndex, "Round not finished");
         deleteRound(roundIndex);
     }
 

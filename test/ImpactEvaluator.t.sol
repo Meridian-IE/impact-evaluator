@@ -241,4 +241,17 @@ contract ImpactEvaluatorTest is Test {
         assertEq(openRoundIndexes.length, 1, "one open round index");
         assertEq(openRoundIndexes[0], 2, "round 2");
     }
+
+    function test_AdminDeleteRound() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(vm.addr(1)));
+        vm.expectRevert("Not an admin");
+        impactEvaluator.adminDeleteRound(0);
+
+        impactEvaluator = new ImpactEvaluator(address(this));
+        vm.expectRevert("Round not finished");
+        impactEvaluator.adminDeleteRound(0);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminDeleteRound(0);
+    }
 }
