@@ -5,13 +5,12 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
+        uint index;
         uint end;
-        bool exists;
         uint totalScores;
     }
 
-    mapping(uint => Round) public openRounds;
-    uint[] public openRoundIndexes;
+    Round[] public openRounds;
     uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -37,10 +36,12 @@ contract ImpactEvaluator is AccessControl {
     receive() external payable {}
 
     function initializeCurrentRound() private {
-        Round storage round = openRounds[currentRoundIndex];
-        round.end = block.number + nextRoundLength;
-        round.exists = true;
-        openRoundIndexes.push(currentRoundIndex);
+        Round memory round = Round(
+            currentRoundIndex,
+            block.number + nextRoundLength,
+            0
+        );
+        openRounds.push(round);
         emit RoundStart(currentRoundIndex);
     }
 
@@ -86,43 +87,44 @@ contract ImpactEvaluator is AccessControl {
         );
         require(roundIndex < currentRoundIndex, "Round not finished");
 
-        Round storage round = openRounds[roundIndex];
-        require(round.exists, "Open round does not exist");
-
+        Round storage round = getOpenRound(roundIndex);
         uint sumOfScores = validateScores(scores, round.totalScores);
         reward(addresses, scores);
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            deleteRound(roundIndex);
+            deleteOpenRound(roundIndex);
         }
     }
 
-    function deleteRound(uint roundIndex) private {
-        delete openRounds[roundIndex];
+    function getOpenRound(uint roundIndex) private view returns (Round storage) {
+        for (uint i = 0; i < openRounds.length; i++) {
+            if (openRounds[i].index == roundIndex) {
+                return openRounds[i];
+            }
+        }
+        revert("Open round does not exist");
+    }
 
-        // Find index inside `openRoundIndexes` and remove it while shrinking
+    function deleteOpenRound(uint roundIndex) private {
+        // Find index inside `openRounds` and remove it while shrinking
         // the array.
-        uint openRoundIndexesIndex;
-        for (uint i = 0; i < openRoundIndexes.length; i++) {
-            if (openRoundIndexes[i] == roundIndex) {
-                openRoundIndexesIndex = i;
+        uint openRoundsIndex;
+        for (uint i = 0; i < openRounds.length; i++) {
+            if (openRounds[i].index == roundIndex) {
+                openRoundsIndex = i;
                 break;
             }
         }
-        for (
-            uint i = openRoundIndexesIndex;
-            i < openRoundIndexes.length - 1;
-            i++
-        ) {
-            openRoundIndexes[i] = openRoundIndexes[i + 1];
+        for (uint i = openRoundsIndex; i < openRounds.length - 1; i++) {
+            openRounds[i] = openRounds[i + 1];
         }
-        openRoundIndexes.pop();
+        openRounds.pop();
     }
 
-    function adminDeleteRound(uint roundIndex) public onlyAdmin {
+    function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
         require(roundIndex < currentRoundIndex, "Round not finished");
-        deleteRound(roundIndex);
+        deleteOpenRound(roundIndex);
     }
 
     function validateScores(
@@ -166,10 +168,6 @@ contract ImpactEvaluator is AccessControl {
                 emit TransferFailed(addr, amount);
             }
         }
-    }
-
-    function getOpenRoundIndexes() public view returns (uint[] memory) {
-        return openRoundIndexes;
     }
 
     modifier onlyAdmin() {

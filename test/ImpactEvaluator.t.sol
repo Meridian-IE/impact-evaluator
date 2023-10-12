@@ -16,7 +16,7 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        (uint end, , ) = impactEvaluator.openRounds(0);
+        (, uint end, ) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
@@ -26,13 +26,13 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetNextRoundLength() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        (uint end, , ) = impactEvaluator.openRounds(0);
+        (, uint end,) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         impactEvaluator.setNextRoundLength(20);
-        (end, , ) = impactEvaluator.openRounds(0);
+        (, end, ) = impactEvaluator.openRounds(0);
         assertEq(end, block.number + 10);
         impactEvaluator.adminAdvanceRound();
-        (end, , ) = impactEvaluator.openRounds(1);
+        (, end, ) = impactEvaluator.openRounds(1);
         assertEq(end, block.number + 20);
         vm.expectRevert("Next round length must be positive");
         impactEvaluator.setNextRoundLength(0);
@@ -212,46 +212,16 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
-    function test_OpenRoundIndexes() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
-        
-        uint[] memory openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
-        assertEq(openRoundIndexes.length, 1, "one open round index");
-        assertEq(openRoundIndexes[0], 0, "round 0");
-
-        impactEvaluator.adminAdvanceRound();
-        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
-        assertEq(openRoundIndexes.length, 2, "two open round index");
-        assertEq(openRoundIndexes[1], 1, "round 1");
-
-        address payable[] memory addresses = new address payable[](1);
-        uint64[] memory scores = new uint64[](1);
-        addresses[0] = payable(vm.addr(1));
-        scores[0] = impactEvaluator.MAX_SCORE();
-        impactEvaluator.setScores(0, addresses, scores);
-
-        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
-        assertEq(openRoundIndexes.length, 1, "one open round index");
-        assertEq(openRoundIndexes[0], 1, "round 1");
-
-        impactEvaluator.adminAdvanceRound();
-        impactEvaluator.adminDeleteRound(1);
-        openRoundIndexes = impactEvaluator.getOpenRoundIndexes();
-        assertEq(openRoundIndexes.length, 1, "one open round index");
-        assertEq(openRoundIndexes[0], 2, "round 2");
-    }
-
-    function test_AdminDeleteRound() public {
+    function test_AdminDeleteOpenRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(vm.addr(1)));
         vm.expectRevert("Not an admin");
-        impactEvaluator.adminDeleteRound(0);
+        impactEvaluator.adminDeleteOpenRound(0);
 
         impactEvaluator = new ImpactEvaluator(address(this));
         vm.expectRevert("Round not finished");
-        impactEvaluator.adminDeleteRound(0);
+        impactEvaluator.adminDeleteOpenRound(0);
 
         impactEvaluator.adminAdvanceRound();
-        impactEvaluator.adminDeleteRound(0);
+        impactEvaluator.adminDeleteOpenRound(0);
     }
 }
