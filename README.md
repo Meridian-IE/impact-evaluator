@@ -19,6 +19,8 @@ will be called and the round finishes.
 
 ### `.adminAdvanceRound()`
 
+### `.adminDeleteRound(uint openRoundIndex)`
+
 ### `.setNextRoundLength(uint nextRoundLength)`
 
 ### `.setRoundReward(uint roundReward)`
@@ -27,9 +29,11 @@ will be called and the round finishes.
 
 ### `.currentRoundIndex() -> uint`
 
-### `.nextRoundLength()`
+### `.nextRoundLength() -> uint`
 
-### `.roundReward()`
+### `.roundReward() -> uint`
+
+### `.getOpenRoundIndexes() -> uint[]`
 
 ## Roles
 

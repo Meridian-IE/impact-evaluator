@@ -6,12 +6,12 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint end;
-        address payable[] addresses;
-        uint64[] scores;
         bool exists;
+        uint totalScores;
     }
 
     mapping(uint => Round) public openRounds;
+    uint[] public openRoundIndexes;
     uint public currentRoundIndex;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -40,6 +40,7 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = openRounds[currentRoundIndex];
         round.end = block.number + nextRoundLength;
         round.exists = true;
+        openRoundIndexes.push(currentRoundIndex);
         emit RoundStart(currentRoundIndex);
     }
 
@@ -88,45 +89,77 @@ contract ImpactEvaluator is AccessControl {
         Round storage round = openRounds[roundIndex];
         require(round.exists, "Open round does not exist");
 
-        for (uint i = 0; i < addresses.length; i++) {
-            round.addresses.push(addresses[i]);
-            round.scores.push(scores[i]);
-        }
+        uint sumOfScores = validateScores(scores, round.totalScores);
+        reward(addresses, scores);
+        round.totalScores += sumOfScores;
 
-        if (allScoresSubmitted(round.scores)) {
-            reward(round.addresses, round.scores);
-            cleanUpRound(round, roundIndex);
+        if (round.totalScores == MAX_SCORE) {
+            deleteRound(roundIndex);
         }
     }
 
-    function cleanUpRound(Round storage round, uint roundIndex) private {
-        round.end = 0;
-        delete round.addresses;
-        delete round.scores;
-        round.exists = false;
+    function deleteRound(uint roundIndex) private {
         delete openRounds[roundIndex];
+
+        // Find index inside `openRoundIndexes` and remove it while shrinking
+        // the array.
+        uint openRoundIndexesIndex;
+        for (uint i = 0; i < openRoundIndexes.length; i++) {
+            if (openRoundIndexes[i] == roundIndex) {
+                openRoundIndexesIndex = i;
+                break;
+            }
+        }
+        for (
+            uint i = openRoundIndexesIndex;
+            i < openRoundIndexes.length - 1;
+            i++
+        ) {
+            openRoundIndexes[i] = openRoundIndexes[i + 1];
+        }
+        openRoundIndexes.pop();
     }
 
-    function allScoresSubmitted(
-        uint64[] memory scores
-    ) private pure returns (bool) {
-        uint totalScore = 0;
+    function adminDeleteRound(uint roundIndex) public onlyAdmin {
+        require(roundIndex < currentRoundIndex, "Round not finished");
+        deleteRound(roundIndex);
+    }
+
+    function validateScores(
+        uint64[] memory scores,
+        uint scoresAlreadySubmitted
+    ) private pure returns (uint) {
+        uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
-            totalScore += scores[i];
+            sum += scores[i];
         }
-        return totalScore >= MAX_SCORE;
+        require(sum <= MAX_SCORE, "Sum of scores too big");
+        require(
+            sum + scoresAlreadySubmitted <= MAX_SCORE,
+            "Sum of scores including historic too big"
+        );
+        return sum;
     }
 
     function reward(
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
-        validateScores(scores);
-        require(address(this).balance >= roundReward, "Not enough funds");
+        uint totalAmount = 0;
+        uint[] memory amounts = new uint[](addresses.length);
+
         for (uint i = 0; i < addresses.length; i++) {
-            address payable addr = addresses[i];
             uint score = scores[i];
             uint256 amount = (score * roundReward) / MAX_SCORE;
+            amounts[i] = amount;
+            totalAmount += amount;
+        }
+
+        require(address(this).balance >= totalAmount, "Not enough funds");
+
+        for (uint i = 0; i < addresses.length; i++) {
+            address payable addr = addresses[i];
+            uint256 amount = amounts[i];
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
@@ -135,12 +168,8 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function validateScores(uint64[] memory scores) private pure {
-        uint64 sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
-        }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
+    function getOpenRoundIndexes() public view returns (uint[] memory) {
+        return openRoundIndexes;
     }
 
     modifier onlyAdmin() {
