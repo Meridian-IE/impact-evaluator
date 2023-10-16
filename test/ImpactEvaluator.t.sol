@@ -212,6 +212,20 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
+    function test_SetScoresBurner() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        address payable[] memory addresses = new address payable[](1);
+        uint64[] memory scores = new uint64[](1);
+        addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+        assertEq(address(impactEvaluator).balance, 100 ether, "correct balance");
+        assertEq(addresses[0].balance, 0, "correct balance");
+    }
+
     function test_OpenRoundIndexes() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         vm.deal(payable(address(impactEvaluator)), 100 ether);
