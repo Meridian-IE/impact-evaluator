@@ -51,12 +51,6 @@ contract ImpactEvaluator is AccessControl {
         advanceRound();
     }
 
-    function maybeAdvanceRound() private {
-        if (block.number >= currentRoundEnd) {
-            advanceRound();
-        }
-    }
-
     function setNextRoundLength(uint _nextRoundLength) public onlyAdmin {
         require(_nextRoundLength > 0, "Next round length must be positive");
         nextRoundLength = _nextRoundLength;
@@ -67,7 +61,9 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
-        maybeAdvanceRound();
+        if (block.number >= currentRoundEnd) {
+            advanceRound();
+        }
         emit MeasurementsAdded(cid, currentRoundIndex(), msg.sender);
         return currentRoundIndex();
     }
