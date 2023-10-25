@@ -9,3 +9,4 @@ optimizer-runs = 10_000_000
 
 [rpc_endpoints]
 calibration = "https://api.calibration.node.glif.io/rpc/v1"
+mainnet = "https://api.node.glif.io/rpc/v1"
