@@ -160,6 +160,10 @@ contract ImpactEvaluator is AccessControl {
 
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
+            if (addr == 0x000000000000000000000000000000000000dEaD) {
+                // TODO: Shall we emit an event here too?
+                continue;
+            }
             uint256 amount = amounts[i];
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
