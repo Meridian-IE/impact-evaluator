@@ -238,4 +238,19 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminDeleteOpenRound(0);
     }
+
+    function test_AdvanceRoundCleanUp() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        uint64[] memory scores = new uint64[](1);
+        addresses[0] = payable(vm.addr(1));
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        impactEvaluator.addMeasurements("cid");
+    }
 }
