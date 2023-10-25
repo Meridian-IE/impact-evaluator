@@ -44,7 +44,7 @@ contract ImpactEvaluator is AccessControl {
             0
         );
         openRounds.push(round);
-        emit RoundStart(currentRoundIndex());
+        emit RoundStart(nextRoundIndex);
     }
 
     function adminAdvanceRound() public onlyAdmin {
