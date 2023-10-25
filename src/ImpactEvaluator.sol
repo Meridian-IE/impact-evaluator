@@ -6,7 +6,6 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl {
     struct Round {
         uint index;
-        uint end;
         uint totalScores;
     }
 
@@ -14,6 +13,7 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
+    uint public currentRoundEnd;
 
     event MeasurementsAdded(
         string cid,
@@ -40,9 +40,9 @@ contract ImpactEvaluator is AccessControl {
             : currentRoundIndex() + 1;
         Round memory round = Round(
             nextRoundIndex,
-            block.number + nextRoundLength,
             0
         );
+        currentRoundEnd = block.number + nextRoundLength;
         openRounds.push(round);
         emit RoundStart(nextRoundIndex);
     }
@@ -52,7 +52,6 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundEnd = getOpenRound(currentRoundIndex()).end;
         if (block.number >= currentRoundEnd) {
             advanceRound();
         }
