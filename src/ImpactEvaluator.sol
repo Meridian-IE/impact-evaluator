@@ -81,37 +81,29 @@ contract ImpactEvaluator is AccessControl {
         );
         require(roundIndex < currentRoundIndex, "Round not finished");
 
-        Round storage round = getOpenRound(roundIndex);
+        (uint openRoundsIndex, Round storage round) = getOpenRound(roundIndex);
         uint sumOfScores = validateScores(scores, round.totalScores);
         reward(addresses, scores);
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            deleteOpenRound(roundIndex);
+            deleteOpenRound(openRoundsIndex);
         }
     }
 
     function getOpenRound(
         uint roundIndex
-    ) private view returns (Round storage) {
+    ) private view returns (uint index, Round storage) {
         for (uint i = 0; i < openRounds.length; i++) {
             if (openRounds[i].index == roundIndex) {
-                return openRounds[i];
+                return (i, openRounds[i]);
             }
         }
         revert("Open round does not exist");
     }
 
-    function deleteOpenRound(uint roundIndex) private {
-        // Find index inside `openRounds` and remove it while shrinking
-        // the array.
-        uint openRoundsIndex;
-        for (uint i = 0; i < openRounds.length; i++) {
-            if (openRounds[i].index == roundIndex) {
-                openRoundsIndex = i;
-                break;
-            }
-        }
+    function deleteOpenRound(uint openRoundsIndex) private {
+        // Remove the round while shrinking the array.
         for (uint i = openRoundsIndex; i < openRounds.length - 1; i++) {
             openRounds[i] = openRounds[i + 1];
         }
@@ -120,7 +112,8 @@ contract ImpactEvaluator is AccessControl {
 
     function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
         require(roundIndex < currentRoundIndex, "Round not finished");
-        deleteOpenRound(roundIndex);
+        (uint openRoundsIndex, ) = getOpenRound(roundIndex);
+        deleteOpenRound(openRoundsIndex);
     }
 
     function validateScores(
