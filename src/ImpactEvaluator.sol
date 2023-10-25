@@ -5,14 +5,12 @@ pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl {
     struct Round {
+        uint index;
         uint end;
-        bool exists;
         uint totalScores;
     }
 
-    mapping(uint => Round) public openRounds;
-    uint[] public openRoundIndexes;
-    uint public currentRoundIndex;
+    Round[] public openRounds;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
@@ -31,22 +29,22 @@ contract ImpactEvaluator is AccessControl {
     constructor(address admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(EVALUATE_ROLE, admin);
-        initializeCurrentRound();
+        advanceRound();
     }
 
     receive() external payable {}
 
-    function initializeCurrentRound() private {
-        Round storage round = openRounds[currentRoundIndex];
-        round.end = block.number + nextRoundLength;
-        round.exists = true;
-        openRoundIndexes.push(currentRoundIndex);
-        emit RoundStart(currentRoundIndex);
-    }
-
     function advanceRound() private {
-        currentRoundIndex++;
-        initializeCurrentRound();
+        uint nextRoundIndex = openRounds.length == 0
+            ? 0
+            : currentRoundIndex() + 1;
+        Round memory round = Round(
+            nextRoundIndex,
+            block.number + nextRoundLength,
+            0
+        );
+        openRounds.push(round);
+        emit RoundStart(nextRoundIndex);
     }
 
     function adminAdvanceRound() public onlyAdmin {
@@ -54,7 +52,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function maybeAdvanceRound() private {
-        uint currentRoundEnd = openRounds[currentRoundIndex].end;
+        uint currentRoundEnd = openRounds[currentRoundIndex()].end;
         if (block.number >= currentRoundEnd) {
             advanceRound();
         }
@@ -71,8 +69,8 @@ contract ImpactEvaluator is AccessControl {
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
         maybeAdvanceRound();
-        emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
-        return currentRoundIndex;
+        emit MeasurementsAdded(cid, currentRoundIndex(), msg.sender);
+        return currentRoundIndex();
     }
 
     function setScores(
@@ -84,45 +82,48 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRoundIndex, "Round not finished");
+        require(roundIndex < currentRoundIndex(), "Round not finished");
 
-        Round storage round = openRounds[roundIndex];
-        require(round.exists, "Open round does not exist");
-
+        Round storage round = getOpenRound(roundIndex);
         uint sumOfScores = validateScores(scores, round.totalScores);
         reward(addresses, scores);
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            deleteRound(roundIndex);
+            deleteOpenRound(roundIndex);
         }
     }
 
-    function deleteRound(uint roundIndex) private {
-        delete openRounds[roundIndex];
+    function getOpenRound(
+        uint roundIndex
+    ) private view returns (Round storage) {
+        for (uint i = 0; i < openRounds.length; i++) {
+            if (openRounds[i].index == roundIndex) {
+                return openRounds[i];
+            }
+        }
+        revert("Open round does not exist");
+    }
 
-        // Find index inside `openRoundIndexes` and remove it while shrinking
+    function deleteOpenRound(uint roundIndex) private {
+        // Find index inside `openRounds` and remove it while shrinking
         // the array.
-        uint openRoundIndexesIndex;
-        for (uint i = 0; i < openRoundIndexes.length; i++) {
-            if (openRoundIndexes[i] == roundIndex) {
-                openRoundIndexesIndex = i;
+        uint openRoundsIndex;
+        for (uint i = 0; i < openRounds.length; i++) {
+            if (openRounds[i].index == roundIndex) {
+                openRoundsIndex = i;
                 break;
             }
         }
-        for (
-            uint i = openRoundIndexesIndex;
-            i < openRoundIndexes.length - 1;
-            i++
-        ) {
-            openRoundIndexes[i] = openRoundIndexes[i + 1];
+        for (uint i = openRoundsIndex; i < openRounds.length - 1; i++) {
+            openRounds[i] = openRounds[i + 1];
         }
-        openRoundIndexes.pop();
+        openRounds.pop();
     }
 
-    function adminDeleteRound(uint roundIndex) public onlyAdmin {
-        require(roundIndex < currentRoundIndex, "Round not finished");
-        deleteRound(roundIndex);
+    function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
+        require(roundIndex < currentRoundIndex(), "Round not finished");
+        deleteOpenRound(roundIndex);
     }
 
     function validateScores(
@@ -172,8 +173,8 @@ contract ImpactEvaluator is AccessControl {
         }
     }
 
-    function getOpenRoundIndexes() public view returns (uint[] memory) {
-        return openRoundIndexes;
+    function currentRoundIndex() public view returns (uint) {
+        return openRounds[openRounds.length - 1].index;
     }
 
     modifier onlyAdmin() {

@@ -33,8 +33,6 @@ will be called and the round finishes.
 
 ### `.roundReward() -> uint`
 
-### `.getOpenRoundIndexes() -> uint[]`
-
 ## Roles
 
 ### `.EVALUATE_ROLE()`
