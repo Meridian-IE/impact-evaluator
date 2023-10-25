@@ -136,25 +136,13 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
-        uint totalAmount = 0;
-        uint[] memory amounts = new uint[](addresses.length);
-
-        for (uint i = 0; i < addresses.length; i++) {
-            uint score = scores[i];
-            uint256 amount = (score * roundReward) / MAX_SCORE;
-            amounts[i] = amount;
-            totalAmount += amount;
-        }
-
-        require(address(this).balance >= totalAmount, "Not enough funds");
-
         for (uint i = 0; i < addresses.length; i++) {
             address payable addr = addresses[i];
             if (addr == 0x000000000000000000000000000000000000dEaD) {
                 // TODO: Shall we emit an event here too?
                 continue;
             }
-            uint256 amount = amounts[i];
+            uint256 amount = (scores[i] * roundReward) / MAX_SCORE;
             if (addr.send(amount)) {
                 emit Transfer(addr, amount);
             } else {
