@@ -13,6 +13,7 @@ contract ImpactEvaluator is AccessControl {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
+    uint public currentRoundIndex;
     uint public currentRoundEnd;
 
     event MeasurementsAdded(
@@ -37,12 +38,13 @@ contract ImpactEvaluator is AccessControl {
     function advanceRound() private {
         uint nextRoundIndex = openRounds.length == 0
             ? 0
-            : currentRoundIndex() + 1;
+            : currentRoundIndex + 1;
         Round memory round = Round(
             nextRoundIndex,
             0
         );
         currentRoundEnd = block.number + nextRoundLength;
+        currentRoundIndex = nextRoundIndex;
         openRounds.push(round);
         emit RoundStart(nextRoundIndex);
     }
@@ -64,8 +66,8 @@ contract ImpactEvaluator is AccessControl {
         if (block.number >= currentRoundEnd) {
             advanceRound();
         }
-        emit MeasurementsAdded(cid, currentRoundIndex(), msg.sender);
-        return currentRoundIndex();
+        emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
+        return currentRoundIndex;
     }
 
     function setScores(
@@ -77,7 +79,7 @@ contract ImpactEvaluator is AccessControl {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRoundIndex(), "Round not finished");
+        require(roundIndex < currentRoundIndex, "Round not finished");
 
         Round storage round = getOpenRound(roundIndex);
         uint sumOfScores = validateScores(scores, round.totalScores);
@@ -117,7 +119,7 @@ contract ImpactEvaluator is AccessControl {
     }
 
     function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
-        require(roundIndex < currentRoundIndex(), "Round not finished");
+        require(roundIndex < currentRoundIndex, "Round not finished");
         deleteOpenRound(roundIndex);
     }
 
@@ -166,10 +168,6 @@ contract ImpactEvaluator is AccessControl {
                 emit TransferFailed(addr, amount);
             }
         }
-    }
-
-    function currentRoundIndex() public view returns (uint) {
-        return openRounds[openRounds.length - 1].index;
     }
 
     modifier onlyAdmin() {
