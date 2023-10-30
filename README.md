@@ -10,7 +10,7 @@
 
 ### `.withdraw(address payable target, uint value)`
 
-### `.withdrawOnBehalf(address account, bytes signature, address payable target, uint value)`
+### `.withdrawOnBehalf(address account, address payable target, uint value, uint8 v, bytes32 r, bytes32 s)`
 
 ## Evaluator functions
 

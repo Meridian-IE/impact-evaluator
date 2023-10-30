@@ -285,25 +285,34 @@ contract ImpactEvaluatorTest is Test {
         );
         vm.deal(payable(address(impactEvaluator)), 100 ether);
 
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
         address payable[] memory addresses = new address payable[](1);
-        addresses[0] = payable(vm.addr(1));
+        addresses[0] = payable(signer);
         uint64[] memory scores = new uint64[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(0, addresses, scores);
 
-        vm.startPrank(vm.addr(2), tx.origin);
+        vm.startPrank(vm.addr(1), tx.origin);
         vm.expectEmit(false, false, false, true);
-        emit Withdrawal(msg.sender, vm.addr(1), 99.9 ether);
-        impactEvaluator.withdrawOnBehalf(
-            vm.addr(1),
-            keccak256(
-                abi.encode(vm.addr(1), vm.addr(2), vm.addr(1), 100 ether)
-            ),
-            payable(vm.addr(1)),
-            100 ether
+        emit Withdrawal(signer, vm.addr(2), 99.9 ether);
+        bytes32 digest = keccak256(
+            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
         );
-        assertEq(vm.addr(1).balance, 99.9 ether);
-        assertEq(vm.addr(2).balance, 0.1 ether);
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
         vm.stopPrank();
+
+        assertEq(vm.addr(1).balance, 0.1 ether);
+        assertEq(vm.addr(2).balance, 99.9 ether);
     }
 }

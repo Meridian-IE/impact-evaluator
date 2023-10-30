@@ -162,21 +162,35 @@ contract ImpactEvaluator is AccessControl {
 
     function withdrawOnBehalf(
         address account,
-        bytes32 signature,
         address payable target,
-        uint value
+        uint value,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) public {
-        bytes32 _signature = keccak256(
+        bytes32 digest = keccak256(
             abi.encode(account, msg.sender, target, value)
         );
-        require(_signature == signature, "Invalid signature");
-        // TODO: Verify author
+        address signer = getSigner(digest, v, r, s);
+        require(signer == account, "Invalid signature");
         // TODO: Add nonce to signature
 
         require(balances[account] > 0.1 ether, "Insufficient balance");
         balances[account] -= 0.1 ether;
         require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
         _withdraw(account, target, value - 0.1 ether);
+    }
+
+    function getSigner(
+        bytes32 digest,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public pure returns (address) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
+        address signer = ecrecover(prefixedDigest, v, r, s);
+        return signer;
     }
 
     modifier onlyAdmin() {
