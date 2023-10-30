@@ -15,6 +15,7 @@ contract ImpactEvaluator is AccessControl {
     uint64 public constant MAX_SCORE = 1e15;
     uint public currentRoundIndex;
     uint public currentRoundEnd;
+    mapping(address => uint) public balances;
 
     event MeasurementsAdded(
         string cid,
@@ -22,8 +23,7 @@ contract ImpactEvaluator is AccessControl {
         address indexed sender
     );
     event RoundStart(uint roundIndex);
-    event Transfer(address indexed to, uint256 amount);
-    event TransferFailed(address indexed to, uint256 amount);
+    event Withdrawal(address indexed account, address target, uint256 value);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -136,19 +136,24 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
+        // TODO: Ensure we have enough balance
         for (uint i = 0; i < addresses.length; i++) {
-            address payable addr = addresses[i];
-            if (addr == 0x000000000000000000000000000000000000dEaD) {
-                // TODO: Shall we emit an event here too?
-                continue;
-            }
-            uint256 amount = (scores[i] * roundReward) / MAX_SCORE;
-            if (addr.send(amount)) {
-                emit Transfer(addr, amount);
-            } else {
-                emit TransferFailed(addr, amount);
-            }
+            balances[addresses[i]] += (scores[i] * roundReward) / MAX_SCORE;
         }
+    }
+
+    function balanceOf(address account) public view returns (uint) {
+        return balances[account];
+    }
+
+    function withdraw(address payable target, uint value) public {
+        require(balances[msg.sender] >= value, "Insufficient balance");
+        balances[msg.sender] -= value;
+        if (balances[msg.sender] == 0) {
+            delete balances[msg.sender];
+        }
+        require(target.send(value), "Withdrawal failed");
+        emit Withdrawal(msg.sender, target, value);
     }
 
     modifier onlyAdmin() {
