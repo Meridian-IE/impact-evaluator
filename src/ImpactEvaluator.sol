@@ -39,10 +39,7 @@ contract ImpactEvaluator is AccessControl {
         uint nextRoundIndex = openRounds.length == 0
             ? 0
             : currentRoundIndex + 1;
-        Round memory round = Round(
-            nextRoundIndex,
-            0
-        );
+        Round memory round = Round(nextRoundIndex, 0);
         currentRoundEnd = block.number + nextRoundLength;
         currentRoundIndex = nextRoundIndex;
         openRounds.push(round);

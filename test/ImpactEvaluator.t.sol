@@ -100,7 +100,11 @@ contract ImpactEvaluatorTest is Test {
         scores[1] = 25e13;
         scores[2] = 25e13;
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(impactEvaluator.balanceOf(addresses[0]), 50 ether, "addresses[0] balance");
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            50 ether,
+            "addresses[0] balance"
+        );
         assertEq(impactEvaluator.balanceOf(addresses[1]), 25 ether);
         assertEq(impactEvaluator.balanceOf(addresses[2]), 25 ether);
     }
@@ -116,8 +120,16 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE() - 1;
         scores[1] = 1;
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(impactEvaluator.balanceOf(addresses[0]), 100 ether - 1e5, "addresses[0] balance");
-        assertEq(impactEvaluator.balanceOf(addresses[1]), 1e5, "addresses[1] balance");
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            100 ether - 1e5,
+            "addresses[0] balance"
+        );
+        assertEq(
+            impactEvaluator.balanceOf(addresses[1]),
+            1e5,
+            "addresses[1] balance"
+        );
     }
 
     function test_SetScoresEmptyRound() public {
@@ -184,7 +196,7 @@ contract ImpactEvaluatorTest is Test {
         uint64[] memory scores = new uint64[](2);
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(1));
-        scores[0] = 2**64 - 1;
+        scores[0] = 2 ** 64 - 1;
         scores[1] = 1;
         vm.expectRevert();
         impactEvaluator.setScores(0, addresses, scores);
@@ -199,7 +211,9 @@ contract ImpactEvaluatorTest is Test {
     }
 
     function test_AdminDeleteOpenRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(vm.addr(1)));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(vm.addr(1))
+        );
         vm.expectRevert("Not an admin");
         impactEvaluator.adminDeleteOpenRound(0);
 
