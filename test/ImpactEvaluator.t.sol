@@ -271,5 +271,8 @@ contract ImpactEvaluatorTest is Test {
         emit Withdrawal(msg.sender, vm.addr(1), 100 ether);
         impactEvaluator.withdraw(payable(vm.addr(1)), 100 ether);
         assertEq(vm.addr(1).balance, 100 ether);
+
+        vm.expectRevert("Insufficient balance");
+        impactEvaluator.withdraw(payable(vm.addr(1)), 100 ether);
     }
 }
