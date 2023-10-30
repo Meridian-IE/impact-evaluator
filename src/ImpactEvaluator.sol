@@ -133,7 +133,6 @@ contract ImpactEvaluator is AccessControl {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
-        // TODO: Ensure we have enough balance
         for (uint i = 0; i < addresses.length; i++) {
             balances[addresses[i]] += (scores[i] * roundReward) / MAX_SCORE;
         }
