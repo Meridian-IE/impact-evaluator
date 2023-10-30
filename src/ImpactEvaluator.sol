@@ -168,13 +168,9 @@ contract ImpactEvaluator is AccessControl {
     ) public {
         // TODO: Verify signature
         // TODO: Add nonce to signature
-
         require(balances[account] > 0.1 ether, "Insufficient balance");
-
-        // TODO: Guard against reentrancy attack
         balances[account] -= 0.1 ether;
         require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
-
         _withdraw(account, target, value - 0.1 ether);
     }
 
