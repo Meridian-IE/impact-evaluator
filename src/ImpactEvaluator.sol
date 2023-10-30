@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl {
+contract ImpactEvaluator is AccessControl, Nonces {
     struct Round {
         uint index;
         uint totalScores;
@@ -16,7 +17,6 @@ contract ImpactEvaluator is AccessControl {
     uint public currentRoundIndex;
     uint public currentRoundEnd;
     mapping(address => uint) public balances;
-    mapping(address => uint) private _nonces;
 
     event MeasurementsAdded(
         string cid,
@@ -170,7 +170,7 @@ contract ImpactEvaluator is AccessControl {
         bytes32 s
     ) public {
         bytes32 digest = keccak256(
-            abi.encode(account, useNonce(account), msg.sender, target, value)
+            abi.encode(account, _useNonce(account), msg.sender, target, value)
         );
         address signer = getSigner(digest, v, r, s);
         require(signer == account, "Invalid signature");
@@ -181,12 +181,8 @@ contract ImpactEvaluator is AccessControl {
         _withdraw(account, target, value - 0.1 ether);
     }
 
-    function nonces(address account) public view returns (uint) {
-        return _nonces[account];
-    }
-
-    function useNonce(address account) private returns (uint) {
-        return _nonces[account]++;
+    function nonces(address account) public view override(Nonces) returns (uint) {
+        return super.nonces(account);
     }
 
     function getSigner(
