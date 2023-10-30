@@ -16,6 +16,7 @@ contract ImpactEvaluator is AccessControl {
     uint public currentRoundIndex;
     uint public currentRoundEnd;
     mapping(address => uint) public balances;
+    mapping(address => uint) private _nonces;
 
     event MeasurementsAdded(
         string cid,
@@ -169,16 +170,23 @@ contract ImpactEvaluator is AccessControl {
         bytes32 s
     ) public {
         bytes32 digest = keccak256(
-            abi.encode(account, msg.sender, target, value)
+            abi.encode(account, useNonce(account), msg.sender, target, value)
         );
         address signer = getSigner(digest, v, r, s);
         require(signer == account, "Invalid signature");
-        // TODO: Add nonce to signature
 
         require(balances[account] > 0.1 ether, "Insufficient balance");
         balances[account] -= 0.1 ether;
         require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
         _withdraw(account, target, value - 0.1 ether);
+    }
+
+    function nonces(address account) public view returns (uint) {
+        return _nonces[account];
+    }
+
+    function useNonce(address account) private returns (uint) {
+        return _nonces[account]++;
     }
 
     function getSigner(

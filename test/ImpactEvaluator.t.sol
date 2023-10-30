@@ -297,7 +297,13 @@ contract ImpactEvaluatorTest is Test {
         vm.expectEmit(false, false, false, true);
         emit Withdrawal(signer, vm.addr(2), 99.9 ether);
         bytes32 digest = keccak256(
-            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
         );
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
@@ -326,8 +332,15 @@ contract ImpactEvaluatorTest is Test {
         address signer = makeAddr("signer");
         (, uint attackerPk) = makeAddrAndKey("attacker");
 
+        vm.startPrank(vm.addr(1), tx.origin);
         bytes32 digest = keccak256(
-            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
         );
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
@@ -341,6 +354,7 @@ contract ImpactEvaluatorTest is Test {
             r,
             s
         );
+        vm.stopPrank();
     }
 
     function test_WithdrawOnBehalfInvalidArguments() public {
@@ -353,8 +367,15 @@ contract ImpactEvaluatorTest is Test {
 
         (address signer, uint signerPk) = makeAddrAndKey("signer");
 
+        vm.startPrank(vm.addr(1), tx.origin);
         bytes32 digest = keccak256(
-            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
         );
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
@@ -363,10 +384,63 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.withdrawOnBehalf(
             signer,
             payable(vm.addr(2)),
-            10000000 ether,
+            100000 ether,
             v,
             r,
             s
         );
+        vm.stopPrank();
+    }
+
+    function test_WithdrawOnBehalfRepeated() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(signer);
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
+        );
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
     }
 }
