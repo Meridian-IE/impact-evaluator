@@ -189,8 +189,7 @@ contract ImpactEvaluator is AccessControl {
     ) public pure returns (address) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        address signer = ecrecover(prefixedDigest, v, r, s);
-        return signer;
+        return ecrecover(prefixedDigest, v, r, s);
     }
 
     modifier onlyAdmin() {
