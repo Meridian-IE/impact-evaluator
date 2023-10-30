@@ -291,16 +291,17 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(0, addresses, scores);
 
+        vm.startPrank(vm.addr(2), tx.origin);
         vm.expectEmit(false, false, false, true);
         emit Withdrawal(msg.sender, vm.addr(1), 99.9 ether);
         impactEvaluator.withdrawOnBehalf(
             vm.addr(1),
             bytes(""),
-            payable(vm.addr(2)),
             payable(vm.addr(1)),
             100 ether
         );
         assertEq(vm.addr(1).balance, 99.9 ether);
         assertEq(vm.addr(2).balance, 0.1 ether);
+        vm.stopPrank();
     }
 }

@@ -163,7 +163,6 @@ contract ImpactEvaluator is AccessControl {
     function withdrawOnBehalf(
         address account,
         bytes memory signature,
-        address payable gasTarget,
         address payable target,
         uint value
     ) public {
@@ -174,7 +173,7 @@ contract ImpactEvaluator is AccessControl {
 
         // TODO: Guard against reentrancy attack
         balances[account] -= 0.1 ether;
-        require(gasTarget.send(0.1 ether), "Gas withdrawal failed");
+        require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
 
         _withdraw(account, target, value - 0.1 ether);
     }
