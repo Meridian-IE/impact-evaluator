@@ -142,14 +142,31 @@ contract ImpactEvaluator is AccessControl {
         return balances[account];
     }
 
-    function withdraw(address payable target, uint value) public {
-        require(balances[msg.sender] >= value, "Insufficient balance");
-        balances[msg.sender] -= value;
-        if (balances[msg.sender] == 0) {
-            delete balances[msg.sender];
+    function _withdraw(address account, address payable target, uint value) private {
+        require(balances[account] >= value, "Insufficient balance");
+        balances[account] -= value;
+        if (balances[account] == 0) {
+            delete balances[account];
         }
         require(target.send(value), "Withdrawal failed");
-        emit Withdrawal(msg.sender, target, value);
+        emit Withdrawal(account, target, value);
+    }
+
+    function withdraw(address payable target, uint value) public {
+        _withdraw(msg.sender, target, value);
+    }
+
+    function withdrawOnBehalf(address account, bytes memory signature, address payable gasTarget, address payable target, uint value) public {
+        // TODO: Verify signature
+        // TODO: Add nonce to signature
+
+        require(balances[account] > 0.1 ether, "Insufficient balance");
+
+        // TODO: Guard against reentrancy attack
+        balances[account] -= 0.1 ether;
+        require(gasTarget.send(0.1 ether), "Gas withdrawal failed");
+
+        _withdraw(account, target, value - 0.1 ether);
     }
 
     modifier onlyAdmin() {

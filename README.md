@@ -10,6 +10,8 @@
 
 ### `.withdraw(address payable target, uint value)`
 
+### `.withdrawOnBehalf(address account, bytes signature, address payable gasTarget, address payable target, uint value)`
+
 ## Evaluator functions
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`

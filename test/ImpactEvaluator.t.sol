@@ -275,4 +275,26 @@ contract ImpactEvaluatorTest is Test {
         vm.expectRevert("Insufficient balance");
         impactEvaluator.withdraw(payable(vm.addr(1)), 100 ether);
     }
+
+    function test_WithdrawOnBehalf() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        vm.expectEmit(false, false, false, true);
+        emit Withdrawal(msg.sender, vm.addr(1), 99.9 ether);
+        impactEvaluator.withdrawOnBehalf(vm.addr(1), bytes(""), payable(vm.addr(2)), payable(vm.addr(1)), 100 ether);
+        assertEq(vm.addr(1).balance, 99.9 ether);
+        assertEq(vm.addr(2).balance, 0.1 ether);
+    }
 }
