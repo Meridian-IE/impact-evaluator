@@ -155,11 +155,11 @@ contract ImpactEvaluator is AccessControl, Nonces {
             delete balances[account];
         }
         require(target.send(value), "Withdrawal failed");
-        emit Withdrawal(account, target, value);
     }
 
     function withdraw(address payable target, uint value) public {
         _withdraw(msg.sender, target, value);
+        emit Withdrawal(msg.sender, target, value);
     }
 
     function withdrawOnBehalf(
@@ -176,10 +176,9 @@ contract ImpactEvaluator is AccessControl, Nonces {
         address signer = ECDSA.recover(digest, v, r, s);
         require(signer == account, "Invalid signature");
 
-        require(balances[account] > 0.1 ether, "Insufficient balance");
-        balances[account] -= 0.1 ether;
-        require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
+        _withdraw(account, payable(msg.sender), 0.1 ether);
         _withdraw(account, target, value - 0.1 ether);
+        emit Withdrawal(account, target, value - 0.1 ether);
     }
 
     function nonces(address account) public view override(Nonces) returns (uint) {
