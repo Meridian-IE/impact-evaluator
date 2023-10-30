@@ -179,7 +179,7 @@ contract ImpactEvaluatorTest is Test {
         uint64[] memory scores = new uint64[](1);
         scores[0] = impactEvaluator.MAX_SCORE() - 1;
         impactEvaluator.setScores(0, addresses, scores);
-    
+
         scores[0] = 2;
         vm.expectRevert("Sum of scores including historic too big");
         impactEvaluator.setScores(0, addresses, scores);
@@ -194,7 +194,7 @@ contract ImpactEvaluatorTest is Test {
         uint64[] memory scores = new uint64[](2);
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(1));
-        scores[0] = 2**64 - 1;
+        scores[0] = 2 ** 64 - 1;
         scores[1] = 1;
         vm.expectRevert();
         impactEvaluator.setScores(0, addresses, scores);
@@ -218,12 +218,18 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(address(impactEvaluator).balance, 100 ether, "correct balance");
+        assertEq(
+            address(impactEvaluator).balance,
+            100 ether,
+            "correct balance"
+        );
         assertEq(addresses[0].balance, 0, "correct balance");
     }
 
     function test_AdminDeleteOpenRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(vm.addr(1)));
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
+            address(vm.addr(1))
+        );
         vm.expectRevert("Not an admin");
         impactEvaluator.adminDeleteOpenRound(0);
 
