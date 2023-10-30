@@ -315,7 +315,7 @@ contract ImpactEvaluatorTest is Test {
         assertEq(vm.addr(2).balance, 99.9 ether);
     }
 
-    function test_WithdrawOnBehalfInvalidSignature() public {
+    function test_WithdrawOnBehalfInvalidPrivateKey() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.revokeRole(
@@ -337,6 +337,33 @@ contract ImpactEvaluatorTest is Test {
             signer,
             payable(vm.addr(2)),
             100 ether,
+            v,
+            r,
+            s
+        );
+    }
+
+    function test_WithdrawOnBehalfInvalidArguments() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        bytes32 digest = keccak256(
+            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
+        );
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            10000000 ether,
             v,
             r,
             s
