@@ -181,10 +181,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
         emit Withdrawal(account, target, value - 0.1 ether);
     }
 
-    function nonces(address account) public view override(Nonces) returns (uint) {
-        return super.nonces(account);
-    }
-
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         _;
