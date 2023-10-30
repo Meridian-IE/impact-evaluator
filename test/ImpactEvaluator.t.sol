@@ -305,9 +305,7 @@ contract ImpactEvaluatorTest is Test {
                 100 ether
             )
         );
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         impactEvaluator.withdrawOnBehalf(
             signer,
             payable(vm.addr(2)),
@@ -342,9 +340,7 @@ contract ImpactEvaluatorTest is Test {
                 100 ether
             )
         );
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerPk, prefixedDigest);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerPk, digest);
         vm.expectRevert("Invalid signature");
         impactEvaluator.withdrawOnBehalf(
             signer,
@@ -377,9 +373,7 @@ contract ImpactEvaluatorTest is Test {
                 100 ether
             )
         );
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         vm.expectRevert("Invalid signature");
         impactEvaluator.withdrawOnBehalf(
             signer,
@@ -419,9 +413,7 @@ contract ImpactEvaluatorTest is Test {
                 100 ether
             )
         );
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, prefixedDigest);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
 
         impactEvaluator.withdrawOnBehalf(
             signer,

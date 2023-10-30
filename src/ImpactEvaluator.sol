@@ -2,6 +2,7 @@
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl, Nonces {
@@ -172,7 +173,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
         bytes32 digest = keccak256(
             abi.encode(account, _useNonce(account), msg.sender, target, value)
         );
-        address signer = getSigner(digest, v, r, s);
+        address signer = ECDSA.recover(digest, v, r, s);
         require(signer == account, "Invalid signature");
 
         require(balances[account] > 0.1 ether, "Insufficient balance");
@@ -183,17 +184,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
 
     function nonces(address account) public view override(Nonces) returns (uint) {
         return super.nonces(account);
-    }
-
-    function getSigner(
-        bytes32 digest,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public pure returns (address) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
-        return ecrecover(prefixedDigest, v, r, s);
     }
 
     modifier onlyAdmin() {
