@@ -296,7 +296,9 @@ contract ImpactEvaluatorTest is Test {
         emit Withdrawal(msg.sender, vm.addr(1), 99.9 ether);
         impactEvaluator.withdrawOnBehalf(
             vm.addr(1),
-            bytes(""),
+            keccak256(
+                abi.encode(vm.addr(1), vm.addr(2), vm.addr(1), 100 ether)
+            ),
             payable(vm.addr(1)),
             100 ether
         );

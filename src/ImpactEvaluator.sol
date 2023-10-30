@@ -162,12 +162,17 @@ contract ImpactEvaluator is AccessControl {
 
     function withdrawOnBehalf(
         address account,
-        bytes memory signature,
+        bytes32 signature,
         address payable target,
         uint value
     ) public {
-        // TODO: Verify signature
+        bytes32 _signature = keccak256(
+            abi.encode(account, msg.sender, target, value)
+        );
+        require(_signature == signature, "Invalid signature");
+        // TODO: Verify author
         // TODO: Add nonce to signature
+
         require(balances[account] > 0.1 ether, "Insufficient balance");
         balances[account] -= 0.1 ether;
         require(payable(msg.sender).send(0.1 ether), "Gas withdrawal failed");
