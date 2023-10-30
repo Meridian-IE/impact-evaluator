@@ -311,8 +311,35 @@ contract ImpactEvaluatorTest is Test {
             s
         );
         vm.stopPrank();
-
         assertEq(vm.addr(1).balance, 0.1 ether);
         assertEq(vm.addr(2).balance, 99.9 ether);
+    }
+
+    function test_WithdrawOnBehalfInvalidSignature() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        address signer = makeAddr("signer");
+        (, uint attackerPk) = makeAddrAndKey("attacker");
+
+        bytes32 digest = keccak256(
+            abi.encode(signer, vm.addr(1), vm.addr(2), 100 ether)
+        );
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedDigest = keccak256(abi.encodePacked(prefix, digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerPk, prefixedDigest);
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
     }
 }
