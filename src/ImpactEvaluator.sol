@@ -142,7 +142,11 @@ contract ImpactEvaluator is AccessControl {
         return balances[account];
     }
 
-    function _withdraw(address account, address payable target, uint value) private {
+    function _withdraw(
+        address account,
+        address payable target,
+        uint value
+    ) private {
         require(balances[account] >= value, "Insufficient balance");
         balances[account] -= value;
         if (balances[account] == 0) {
@@ -156,7 +160,13 @@ contract ImpactEvaluator is AccessControl {
         _withdraw(msg.sender, target, value);
     }
 
-    function withdrawOnBehalf(address account, bytes memory signature, address payable gasTarget, address payable target, uint value) public {
+    function withdrawOnBehalf(
+        address account,
+        bytes memory signature,
+        address payable gasTarget,
+        address payable target,
+        uint value
+    ) public {
         // TODO: Verify signature
         // TODO: Add nonce to signature
 
