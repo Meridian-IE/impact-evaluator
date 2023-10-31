@@ -11,7 +11,7 @@ contract ImpactEvaluatorTest is Test {
         uint roundIndex,
         address indexed sender
     );
-    event Transfer(address indexed to, uint256 amount);
+    event Withdrawal(address indexed account, address target, uint256 value);
 
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
@@ -34,14 +34,14 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setNextRoundLength(0);
     }
 
-    function test_setRoundReward() public {
+    function test_SetRoundReward() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.roundReward(), 100 ether);
         impactEvaluator.setRoundReward(200 ether);
         assertEq(impactEvaluator.roundReward(), 200 ether);
     }
 
-    function test_setRoundRewardNotAdmin() public {
+    function test_SetRoundRewardNotAdmin() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an admin");
         impactEvaluator.setRoundReward(200 ether);
@@ -75,11 +75,12 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
-        vm.expectEmit(false, false, false, true);
-        emit Transfer(addresses[0], 100 ether);
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(addresses[0].balance, 100 ether, "correct balance");
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            100 ether,
+            "correct balance"
+        );
 
         vm.expectRevert("Open round does not exist");
         impactEvaluator.setScores(0, addresses, scores);
@@ -98,11 +99,14 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = 50e13;
         scores[1] = 25e13;
         scores[2] = 25e13;
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(addresses[0].balance, 50 ether, "addresses[0] balance");
-        assertEq(addresses[1].balance, 25 ether);
-        assertEq(addresses[2].balance, 25 ether);
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            50 ether,
+            "addresses[0] balance"
+        );
+        assertEq(impactEvaluator.balanceOf(addresses[1]), 25 ether);
+        assertEq(impactEvaluator.balanceOf(addresses[2]), 25 ether);
     }
 
     function test_SetScoresFractions() public {
@@ -115,14 +119,17 @@ contract ImpactEvaluatorTest is Test {
         uint64[] memory scores = new uint64[](2);
         scores[0] = impactEvaluator.MAX_SCORE() - 1;
         scores[1] = 1;
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
-        vm.expectEmit(false, false, false, true);
-        emit Transfer(addresses[0], 100 ether - 1e5);
-        vm.expectEmit(false, false, false, true);
-        emit Transfer(addresses[0], 1e5);
         impactEvaluator.setScores(0, addresses, scores);
-        assertEq(addresses[0].balance, 100 ether - 1e5, "addresses[0] balance");
-        assertEq(addresses[1].balance, 1e5, "addresses[1] balance");
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            100 ether - 1e5,
+            "addresses[0] balance"
+        );
+        assertEq(
+            impactEvaluator.balanceOf(addresses[1]),
+            1e5,
+            "addresses[1] balance"
+        );
     }
 
     function test_SetScoresEmptyRound() public {
@@ -131,14 +138,12 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleCalls() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
         uint64 iterations = 10;
         for (uint i = 0; i < iterations; i++) {
             address payable[] memory addresses = new address payable[](1);
@@ -149,7 +154,7 @@ contract ImpactEvaluatorTest is Test {
         }
         for (uint i = 0; i < iterations; i++) {
             assertEq(
-                vm.addr(i + 1).balance,
+                impactEvaluator.balanceOf(vm.addr(i + 1)),
                 100 ether / iterations,
                 "right balance"
             );
@@ -164,7 +169,6 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
         scores[0] = impactEvaluator.MAX_SCORE() + 1;
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
         vm.expectRevert("Sum of scores too big");
         impactEvaluator.setScores(0, addresses, scores);
     }
@@ -172,7 +176,6 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresTooBigHistoric() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
@@ -188,7 +191,6 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresOverflow() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
 
         address payable[] memory addresses = new address payable[](2);
         uint64[] memory scores = new uint64[](2);
@@ -208,24 +210,6 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
-    function test_SetScoresBurner() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        impactEvaluator.adminAdvanceRound();
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
-
-        address payable[] memory addresses = new address payable[](1);
-        uint64[] memory scores = new uint64[](1);
-        addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
-        scores[0] = impactEvaluator.MAX_SCORE();
-        impactEvaluator.setScores(0, addresses, scores);
-        assertEq(
-            address(impactEvaluator).balance,
-            100 ether,
-            "correct balance"
-        );
-        assertEq(addresses[0].balance, 0, "correct balance");
-    }
-
     function test_AdminDeleteOpenRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(
             address(vm.addr(1))
@@ -243,7 +227,6 @@ contract ImpactEvaluatorTest is Test {
 
     function test_AdvanceRoundCleanUp() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        vm.deal(payable(address(impactEvaluator)), 100 ether);
 
         impactEvaluator.adminAdvanceRound();
 
@@ -254,5 +237,236 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
 
         impactEvaluator.addMeasurements("cid");
+    }
+
+    function test_BalanceOf() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.balanceOf(address(this)), 0);
+
+        impactEvaluator.adminAdvanceRound();
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(address(this));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        assertEq(impactEvaluator.balanceOf(address(this)), 100 ether);
+    }
+
+    function test_Withdraw() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(address(this));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+        vm.expectEmit(false, false, false, true);
+        emit Withdrawal(msg.sender, vm.addr(1), 100 ether);
+        impactEvaluator.withdraw(payable(vm.addr(1)), 100 ether);
+        assertEq(vm.addr(1).balance, 100 ether);
+
+        vm.expectRevert("Insufficient balance");
+        impactEvaluator.withdraw(payable(vm.addr(1)), 100 ether);
+    }
+
+    function test_WithdrawOnBehalf() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(signer);
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        vm.expectEmit(false, false, false, true);
+        emit Withdrawal(signer, vm.addr(2), 99.9 ether);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
+        assertEq(vm.addr(1).balance, 0.1 ether);
+        assertEq(vm.addr(2).balance, 99.9 ether);
+    }
+
+    function test_WithdrawOnBehalfInvalidPrivateKey() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        address signer = makeAddr("signer");
+        (, uint attackerPk) = makeAddrAndKey("attacker");
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(attackerPk, digest);
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
+    }
+
+    function test_WithdrawOnBehalfInvalidArguments() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100000 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
+    }
+
+    function test_WithdrawOnBehalfRepeated() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(signer);
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(0, addresses, scores);
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                100 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+
+        vm.expectRevert("Invalid signature");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            100 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
+    }
+
+    function test_WithdrawOnBehalfInsufficientBalanceForGas() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.deal(payable(address(impactEvaluator)), 0.1 ether);
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                0.1 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+        vm.expectRevert("Insufficient balance");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            0.1 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
     }
 }

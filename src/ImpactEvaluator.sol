@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl {
+contract ImpactEvaluator is AccessControl, Nonces {
     struct Round {
         uint index;
         uint totalScores;
@@ -15,6 +17,7 @@ contract ImpactEvaluator is AccessControl {
     uint64 public constant MAX_SCORE = 1e15;
     uint public currentRoundIndex;
     uint public currentRoundEnd;
+    mapping(address => uint) public balances;
 
     event MeasurementsAdded(
         string cid,
@@ -22,8 +25,7 @@ contract ImpactEvaluator is AccessControl {
         address indexed sender
     );
     event RoundStart(uint roundIndex);
-    event Transfer(address indexed to, uint256 amount);
-    event TransferFailed(address indexed to, uint256 amount);
+    event Withdrawal(address indexed account, address target, uint256 value);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -134,18 +136,49 @@ contract ImpactEvaluator is AccessControl {
         uint64[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
-            address payable addr = addresses[i];
-            if (addr == 0x000000000000000000000000000000000000dEaD) {
-                // TODO: Shall we emit an event here too?
-                continue;
-            }
-            uint256 amount = (scores[i] * roundReward) / MAX_SCORE;
-            if (addr.send(amount)) {
-                emit Transfer(addr, amount);
-            } else {
-                emit TransferFailed(addr, amount);
-            }
+            balances[addresses[i]] += (scores[i] * roundReward) / MAX_SCORE;
         }
+    }
+
+    function balanceOf(address account) public view returns (uint) {
+        return balances[account];
+    }
+
+    function _withdraw(
+        address account,
+        address payable target,
+        uint value
+    ) private {
+        require(balances[account] >= value, "Insufficient balance");
+        balances[account] -= value;
+        if (balances[account] == 0) {
+            delete balances[account];
+        }
+        require(target.send(value), "Withdrawal failed");
+    }
+
+    function withdraw(address payable target, uint value) public {
+        _withdraw(msg.sender, target, value);
+        emit Withdrawal(msg.sender, target, value);
+    }
+
+    function withdrawOnBehalf(
+        address account,
+        address payable target,
+        uint value,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        bytes32 digest = keccak256(
+            abi.encode(account, _useNonce(account), msg.sender, target, value)
+        );
+        address signer = ECDSA.recover(digest, v, r, s);
+        require(signer == account, "Invalid signature");
+
+        _withdraw(account, payable(msg.sender), 0.1 ether);
+        _withdraw(account, target, value - 0.1 ether);
+        emit Withdrawal(account, target, value - 0.1 ether);
     }
 
     modifier onlyAdmin() {

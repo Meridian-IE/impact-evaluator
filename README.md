@@ -8,6 +8,10 @@
 
 ### `.addMeasurements(string cid) -> uint`
 
+### `.withdraw(address payable target, uint value)`
+
+### `.withdrawOnBehalf(address account, address payable target, uint value, uint8 v, bytes32 r, bytes32 s)`
+
 ## Evaluator functions
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
@@ -33,6 +37,8 @@ will be called and the round finishes.
 
 ### `.roundReward() -> uint`
 
+### `.balanceOf(address account) view -> uint`
+
 ## Roles
 
 ### `.EVALUATE_ROLE()`
@@ -43,9 +49,7 @@ will be called and the round finishes.
 
 ### `RoundStart(uint roundIndex)`
 
-### `Transfer(address indexed to, uint256 amount)`
-
-### `TransferFailed(address indexed to, uint256 amount)`
+### `Withdrawal(address indexed account, address target, uint value)`
 
 ## Structs
 
