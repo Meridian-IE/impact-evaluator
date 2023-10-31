@@ -435,4 +435,38 @@ contract ImpactEvaluatorTest is Test {
         );
         vm.stopPrank();
     }
+
+    function test_WithdrawOnBehalfInsufficientBalanceForGas() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.deal(payable(address(impactEvaluator)), 0.1 ether);
+
+        (address signer, uint signerPk) = makeAddrAndKey("signer");
+
+        vm.startPrank(vm.addr(1), tx.origin);
+        bytes32 digest = keccak256(
+            abi.encode(
+                signer,
+                impactEvaluator.nonces(signer),
+                vm.addr(1),
+                vm.addr(2),
+                0.1 ether
+            )
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+        vm.expectRevert("Insufficient balance");
+        impactEvaluator.withdrawOnBehalf(
+            signer,
+            payable(vm.addr(2)),
+            0.1 ether,
+            v,
+            r,
+            s
+        );
+        vm.stopPrank();
+    }
 }
