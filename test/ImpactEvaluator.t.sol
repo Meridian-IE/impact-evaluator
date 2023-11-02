@@ -63,6 +63,7 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
@@ -88,6 +89,7 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetScoresMultipleParticipants() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.adminAdvanceRound();
 
         address payable[] memory addresses = new address payable[](3);
@@ -111,6 +113,7 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetScoresFractions() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.adminAdvanceRound();
 
         address payable[] memory addresses = new address payable[](2);
@@ -143,6 +146,7 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetScoresMultipleCalls() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.adminAdvanceRound();
         uint64 iterations = 10;
         for (uint i = 0; i < iterations; i++) {
@@ -242,6 +246,7 @@ contract ImpactEvaluatorTest is Test {
     function test_BalanceOf() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.balanceOf(address(this)), 0);
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
 
         impactEvaluator.adminAdvanceRound();
         address payable[] memory addresses = new address payable[](1);
