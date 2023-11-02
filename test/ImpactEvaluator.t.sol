@@ -85,8 +85,11 @@ contract ImpactEvaluatorTest is Test {
             "correct balance"
         );
 
-        vm.expectRevert("Open round does not exist");
+        vm.expectRevert("Round already scored");
         impactEvaluator.setScores(1, addresses, scores);
+
+        vm.expectRevert("Can only score previous round");
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleParticipants() public {
@@ -215,7 +218,7 @@ contract ImpactEvaluatorTest is Test {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
-        vm.expectRevert("Round not finished");
+        vm.expectRevert("Can only score previous round");
         impactEvaluator.setScores(0, addresses, scores);
     }
 

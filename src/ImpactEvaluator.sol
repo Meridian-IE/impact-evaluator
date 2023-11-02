@@ -88,11 +88,12 @@ contract ImpactEvaluator is AccessControl, Nonces {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRound.index, "Round not finished");
         require(
-            roundIndex == previousRound.index && !previousRound.scored,
-            "Open round does not exist"
+            previousRound.index != currentRound.index &&
+            roundIndex == previousRound.index,
+            "Can only score previous round"
         );
+        require(!previousRound.scored, "Round already scored");
 
         uint sumOfScores = validateScores(scores);
         reward(addresses, scores);
