@@ -62,11 +62,12 @@ contract ImpactEvaluator is AccessControl, Nonces {
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
+        uint measurementsRoundIndex = currentRoundIndex;
+        emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
         if (block.number >= currentRoundEnd) {
             advanceRound();
         }
-        emit MeasurementsAdded(cid, currentRoundIndex, msg.sender);
-        return currentRoundIndex;
+        return measurementsRoundIndex;
     }
 
     function setScores(
