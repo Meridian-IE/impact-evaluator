@@ -80,13 +80,15 @@ contract ImpactEvaluator is AccessControl, Nonces {
         );
         require(roundIndex < currentRoundIndex, "Round not finished");
 
-        (uint openRoundsIndex, Round storage round) = getOpenRound(roundIndex);
+        (uint indexInOpenRounds, Round storage round) = getOpenRound(
+            roundIndex
+        );
         uint sumOfScores = validateScores(scores, round.totalScores);
         reward(addresses, scores);
         round.totalScores += sumOfScores;
 
         if (round.totalScores == MAX_SCORE) {
-            deleteOpenRound(openRoundsIndex);
+            deleteOpenRound(indexInOpenRounds);
         }
     }
 
@@ -101,9 +103,9 @@ contract ImpactEvaluator is AccessControl, Nonces {
         revert("Open round does not exist");
     }
 
-    function deleteOpenRound(uint openRoundsIndex) private {
+    function deleteOpenRound(uint indexInOpenRounds) private {
         // Remove the round while shrinking the array.
-        for (uint i = openRoundsIndex; i < openRounds.length - 1; i++) {
+        for (uint i = indexInOpenRounds; i < openRounds.length - 1; i++) {
             openRounds[i] = openRounds[i + 1];
         }
         openRounds.pop();
@@ -111,8 +113,8 @@ contract ImpactEvaluator is AccessControl, Nonces {
 
     function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
         require(roundIndex < currentRoundIndex, "Round not finished");
-        (uint openRoundsIndex, ) = getOpenRound(roundIndex);
-        deleteOpenRound(openRoundsIndex);
+        (uint indexInOpenRounds, ) = getOpenRound(roundIndex);
+        deleteOpenRound(indexInOpenRounds);
     }
 
     function validateScores(
