@@ -11,6 +11,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint end;
         uint totalScores;
         bool scored;
+        uint roundReward;
     }
 
     Round public currentRound;
@@ -19,6 +20,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
     mapping(address => uint) public balances;
+    uint public balanceHeld = 0;
 
     event MeasurementsAdded(
         string cid,
@@ -39,12 +41,18 @@ contract ImpactEvaluator is AccessControl, Nonces {
     receive() external payable {}
 
     function advanceRound() private {
+        uint availableInContract = address(this).balance - balanceHeld;
+        uint nextAvailableRoundReward = availableInContract < roundReward
+            ? availableInContract
+            : roundReward;
+        balanceHeld += nextAvailableRoundReward;
         previousRound = currentRound;
         currentRound = Round(
             currentRound.end == 0 ? 0 : currentRound.index + 1,
             block.number + nextRoundLength,
             0,
-            false
+            false,
+            nextAvailableRoundReward
         );
         emit RoundStart(currentRound.index);
     }
@@ -113,7 +121,13 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint64[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
-            balances[addresses[i]] += (scores[i] * roundReward) / MAX_SCORE;
+            address payable participant = addresses[i];
+            uint amount = (scores[i] * previousRound.roundReward) / MAX_SCORE;
+            if (participant == 0x000000000000000000000000000000000000dEaD) {
+                balanceHeld -= amount;
+            } else {
+                balances[participant] += amount;
+            }
         }
     }
 
@@ -128,6 +142,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     ) private {
         require(balances[account] >= value, "Insufficient balance");
         balances[account] -= value;
+        balanceHeld -= value;
         if (balances[account] == 0) {
             delete balances[account];
         }
