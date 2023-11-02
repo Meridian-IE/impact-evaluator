@@ -86,7 +86,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
             "Open round does not exist"
         );
 
-        uint sumOfScores = validateScores(scores, previousRound.totalScores);
+        uint sumOfScores = validateScores(scores);
         reward(addresses, scores);
         previousRound.totalScores += sumOfScores;
 
@@ -95,18 +95,14 @@ contract ImpactEvaluator is AccessControl, Nonces {
         }
     }
 
-    // TODO: Remove 2nd argument?
-    function validateScores(
-        uint64[] memory scores,
-        uint scoresAlreadySubmitted
-    ) private pure returns (uint) {
+    function validateScores(uint64[] memory scores) public view returns (uint) {
         uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];
         }
         require(sum <= MAX_SCORE, "Sum of scores too big");
         require(
-            sum + scoresAlreadySubmitted <= MAX_SCORE,
+            sum + previousRound.totalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
         return sum;
