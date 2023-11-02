@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import "../src/ImpactEvaluator.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
 contract ImpactEvaluatorTest is Test {
     event RoundStart(uint roundIndex);
@@ -160,7 +161,7 @@ contract ImpactEvaluatorTest is Test {
             assertEq(
                 impactEvaluator.balanceOf(vm.addr(i + 1)),
                 100 ether / iterations,
-                "right balance"
+                string.concat("address[", Strings.toString(i), "] balance")
             );
         }
     }
@@ -473,5 +474,39 @@ contract ImpactEvaluatorTest is Test {
             s
         );
         vm.stopPrank();
+    }
+
+    function test_Reward() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 150 ether);
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.setScores(0, addresses, scores);
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            100 ether,
+            "full reward"
+        );
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            150 ether,
+            "remaining reward"
+        );
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.setScores(2, addresses, scores);
+        assertEq(
+            impactEvaluator.balanceOf(addresses[0]),
+            150 ether,
+            "no extra reward"
+        );
     }
 }
