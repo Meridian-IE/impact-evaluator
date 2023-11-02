@@ -210,21 +210,6 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
-    function test_AdminDeleteOpenRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(vm.addr(1))
-        );
-        vm.expectRevert("Not an admin");
-        impactEvaluator.adminDeleteOpenRound(0);
-
-        impactEvaluator = new ImpactEvaluator(address(this));
-        vm.expectRevert("Round not finished");
-        impactEvaluator.adminDeleteOpenRound(0);
-
-        impactEvaluator.adminAdvanceRound();
-        impactEvaluator.adminDeleteOpenRound(0);
-    }
-
     function test_AdvanceRoundCleanUp() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
 

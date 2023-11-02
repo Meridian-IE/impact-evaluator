@@ -8,15 +8,16 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl, Nonces {
     struct Round {
         uint index;
+        uint end;
         uint totalScores;
+        bool scored;
     }
 
-    Round[] public openRounds;
+    Round public currentRound;
+    Round public previousRound;
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint64 public constant MAX_SCORE = 1e15;
-    uint public currentRoundIndex;
-    uint public currentRoundEnd;
     mapping(address => uint) public balances;
 
     event MeasurementsAdded(
@@ -38,14 +39,14 @@ contract ImpactEvaluator is AccessControl, Nonces {
     receive() external payable {}
 
     function advanceRound() private {
-        uint nextRoundIndex = openRounds.length == 0
-            ? 0
-            : currentRoundIndex + 1;
-        Round memory round = Round(nextRoundIndex, 0);
-        currentRoundEnd = block.number + nextRoundLength;
-        currentRoundIndex = nextRoundIndex;
-        openRounds.push(round);
-        emit RoundStart(nextRoundIndex);
+        previousRound = currentRound;
+        currentRound = Round(
+            currentRound.end == 0 ? 0 : currentRound.index + 1,
+            block.number + nextRoundLength,
+            0,
+            false
+        );
+        emit RoundStart(currentRound.index);
     }
 
     function adminAdvanceRound() public onlyAdmin {
@@ -62,9 +63,9 @@ contract ImpactEvaluator is AccessControl, Nonces {
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
-        uint measurementsRoundIndex = currentRoundIndex;
+        uint measurementsRoundIndex = currentRound.index;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
-        if (block.number >= currentRoundEnd) {
+        if (block.number >= currentRound.end) {
             advanceRound();
         }
         return measurementsRoundIndex;
@@ -79,45 +80,22 @@ contract ImpactEvaluator is AccessControl, Nonces {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRoundIndex, "Round not finished");
-
-        (uint indexInOpenRounds, Round storage round) = getOpenRound(
-            roundIndex
+        require(roundIndex < currentRound.index, "Round not finished");
+        require(
+            roundIndex == previousRound.index && !previousRound.scored,
+            "Open round does not exist"
         );
-        uint sumOfScores = validateScores(scores, round.totalScores);
+
+        uint sumOfScores = validateScores(scores, previousRound.totalScores);
         reward(addresses, scores);
-        round.totalScores += sumOfScores;
+        previousRound.totalScores += sumOfScores;
 
-        if (round.totalScores == MAX_SCORE) {
-            deleteOpenRound(indexInOpenRounds);
+        if (previousRound.totalScores == MAX_SCORE) {
+            previousRound.scored = true;
         }
     }
 
-    function getOpenRound(
-        uint roundIndex
-    ) private view returns (uint index, Round storage) {
-        for (uint i = 0; i < openRounds.length; i++) {
-            if (openRounds[i].index == roundIndex) {
-                return (i, openRounds[i]);
-            }
-        }
-        revert("Open round does not exist");
-    }
-
-    function deleteOpenRound(uint indexInOpenRounds) private {
-        // Remove the round while shrinking the array.
-        for (uint i = indexInOpenRounds; i < openRounds.length - 1; i++) {
-            openRounds[i] = openRounds[i + 1];
-        }
-        openRounds.pop();
-    }
-
-    function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
-        require(roundIndex < currentRoundIndex, "Round not finished");
-        (uint indexInOpenRounds, ) = getOpenRound(roundIndex);
-        deleteOpenRound(indexInOpenRounds);
-    }
-
+    // TODO: Remove 2nd argument?
     function validateScores(
         uint64[] memory scores,
         uint scoresAlreadySubmitted
@@ -182,6 +160,14 @@ contract ImpactEvaluator is AccessControl, Nonces {
         _withdraw(account, payable(msg.sender), 0.1 ether);
         _withdraw(account, target, value - 0.1 ether);
         emit Withdrawal(account, target, value - 0.1 ether);
+    }
+
+    function currentRoundIndex() public view returns (uint) {
+        return currentRound.index;
+    }
+
+    function currentRoundEnd() public view returns (uint) {
+        return currentRound.end;
     }
 
     modifier onlyAdmin() {
