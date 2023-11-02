@@ -10,7 +10,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint index;
         uint totalScores;
         uint roundReward;
-        bool roundRewardCalculated;
     }
 
     Round[] public openRounds;
@@ -44,7 +43,12 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint nextRoundIndex = openRounds.length == 0
             ? 0
             : currentRoundIndex + 1;
-        Round memory round = Round(nextRoundIndex, 0, 0, false);
+        uint availableInContract = address(this).balance - balanceHeld;
+        uint nextAvailableRoundReward = availableInContract < roundReward
+            ? availableInContract
+            : roundReward;
+        balanceHeld += nextAvailableRoundReward;
+        Round memory round = Round(nextRoundIndex, 0, nextAvailableRoundReward);
         currentRoundEnd = block.number + nextRoundLength;
         currentRoundIndex = nextRoundIndex;
         openRounds.push(round);
@@ -84,15 +88,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
         require(roundIndex < currentRoundIndex, "Round not finished");
 
         (uint openRoundsIndex, Round storage round) = getOpenRound(roundIndex);
-
-        if (!round.roundRewardCalculated) {
-            uint availableInContract = address(this).balance - balanceHeld;
-            round.roundReward = availableInContract < roundReward
-                ? availableInContract
-                : roundReward;
-            round.roundRewardCalculated = true;
-            balanceHeld += round.roundReward;
-        }
 
         uint sumOfScores = validateScores(scores, round.totalScores);
         reward(round, addresses, scores);
@@ -150,7 +145,8 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint64[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
-            balances[addresses[i]] += (scores[i] * round.roundReward) /
+            balances[addresses[i]] +=
+                (scores[i] * round.roundReward) /
                 MAX_SCORE;
         }
     }
