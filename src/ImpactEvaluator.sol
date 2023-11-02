@@ -145,9 +145,13 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint64[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
-            balances[addresses[i]] +=
-                (scores[i] * round.roundReward) /
-                MAX_SCORE;
+            address payable participant = addresses[i];
+            uint amount = (scores[i] * round.roundReward) / MAX_SCORE;
+            if (participant == 0x000000000000000000000000000000000000dEaD) {
+                balanceHeld -= amount;
+            } else {
+                balances[participant] += amount;
+            }
         }
     }
 

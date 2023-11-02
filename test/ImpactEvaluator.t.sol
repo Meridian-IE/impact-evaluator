@@ -527,4 +527,34 @@ contract ImpactEvaluatorTest is Test {
             "no extra reward"
         );
     }
+
+    function test_RewardBurner() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        // round 0: 0 ether available
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.adminAdvanceRound();
+        // round 1: 100 ether available
+        impactEvaluator.adminAdvanceRound();
+        // round 2: 0 ether available
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+
+        impactEvaluator.setScores(1, addresses, scores);
+
+        impactEvaluator.adminAdvanceRound();
+        // round 3: 100 ether available
+        impactEvaluator.adminAdvanceRound();
+        // round 4: 0 ether available
+
+        addresses[0] = payable(address(this));
+        impactEvaluator.setScores(3, addresses, scores);
+        assertEq(
+            impactEvaluator.balanceOf(address(this)),
+            100 ether,
+            "burner reward was added back to the pool"
+        );
+    }
 }
