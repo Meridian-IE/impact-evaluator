@@ -6,18 +6,19 @@ import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl, Nonces {
-    struct Round {
-        uint index;
-        uint endBlockNumber;
-        uint totalScores;
-        uint roundReward;
-    }
+    uint public currentRoundIndex;
+    uint public currentRoundEndBlockNumber;
+    uint public currentRoundRoundReward;
 
-    Round public currentRound;
-    Round public previousRound;
+    uint public previousRoundIndex;
+    uint public previousRoundTotalScores;
+    uint public previousRoundRoundReward;
+
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
+
     uint64 public constant MAX_SCORE = 1e15;
+
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
 
@@ -45,14 +46,15 @@ contract ImpactEvaluator is AccessControl, Nonces {
             ? availableInContract
             : roundReward;
         balanceHeld += nextAvailableRoundReward;
-        previousRound = currentRound;
-        currentRound = Round(
-            currentRound.endBlockNumber == 0 ? 0 : currentRound.index + 1,
-            block.number + nextRoundLength,
-            0,
-            nextAvailableRoundReward
-        );
-        emit RoundStart(currentRound.index);
+        previousRoundIndex = currentRoundIndex;
+        previousRoundTotalScores = 0;
+        previousRoundRoundReward = currentRoundRoundReward;
+        currentRoundIndex = currentRoundEndBlockNumber == 0
+            ? 0
+            : currentRoundIndex + 1;
+        currentRoundEndBlockNumber = block.number + nextRoundLength;
+        currentRoundRoundReward = nextAvailableRoundReward;
+        emit RoundStart(currentRoundIndex);
     }
 
     function adminAdvanceRound() public onlyAdmin {
@@ -69,9 +71,9 @@ contract ImpactEvaluator is AccessControl, Nonces {
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
-        uint measurementsRoundIndex = currentRound.index;
+        uint measurementsRoundIndex = currentRoundIndex;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
-        if (block.number >= currentRound.endBlockNumber) {
+        if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
         return measurementsRoundIndex;
@@ -87,14 +89,14 @@ contract ImpactEvaluator is AccessControl, Nonces {
             "Addresses and scores length mismatch"
         );
         require(
-            previousRound.index != currentRound.index &&
-            roundIndex == previousRound.index,
+            previousRoundIndex != currentRoundIndex &&
+            roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
 
         uint sumOfScores = validateScores(scores);
         reward(addresses, scores);
-        previousRound.totalScores += sumOfScores;
+        previousRoundTotalScores += sumOfScores;
     }
 
     function validateScores(uint64[] memory scores) public view returns (uint) {
@@ -104,7 +106,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
         }
         require(sum <= MAX_SCORE, "Sum of scores too big");
         require(
-            sum + previousRound.totalScores <= MAX_SCORE,
+            sum + previousRoundTotalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
         return sum;
@@ -116,7 +118,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
-            uint amount = (scores[i] * previousRound.roundReward) / MAX_SCORE;
+            uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant == 0x000000000000000000000000000000000000dEaD) {
                 balanceHeld -= amount;
             } else {
@@ -167,12 +169,8 @@ contract ImpactEvaluator is AccessControl, Nonces {
         emit Withdrawal(account, target, value - 0.1 ether);
     }
 
-    function currentRoundIndex() public view returns (uint) {
-        return currentRound.index;
-    }
-
     function currentRoundEnd() public view returns (uint) {
-        return currentRound.endBlockNumber;
+        return currentRoundEndBlockNumber;
     }
 
     modifier onlyAdmin() {

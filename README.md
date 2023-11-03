@@ -51,10 +51,6 @@ will be called and the round finishes.
 
 ### `Withdrawal(address indexed account, address target, uint value)`
 
-## Structs
-
-### `Round`
-
 ## Development
 
 This repo requires Rust and Cargo, which can be installed from
