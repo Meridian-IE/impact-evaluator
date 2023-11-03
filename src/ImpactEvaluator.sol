@@ -10,7 +10,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
         uint index;
         uint end;
         uint totalScores;
-        bool scored;
         uint roundReward;
     }
 
@@ -51,7 +50,6 @@ contract ImpactEvaluator is AccessControl, Nonces {
             currentRound.end == 0 ? 0 : currentRound.index + 1,
             block.number + nextRoundLength,
             0,
-            false,
             nextAvailableRoundReward
         );
         emit RoundStart(currentRound.index);
@@ -93,15 +91,10 @@ contract ImpactEvaluator is AccessControl, Nonces {
             roundIndex == previousRound.index,
             "Can only score previous round"
         );
-        require(!previousRound.scored, "Round already scored");
 
         uint sumOfScores = validateScores(scores);
         reward(addresses, scores);
         previousRound.totalScores += sumOfScores;
-
-        if (previousRound.totalScores == MAX_SCORE) {
-            previousRound.scored = true;
-        }
     }
 
     function validateScores(uint64[] memory scores) public view returns (uint) {

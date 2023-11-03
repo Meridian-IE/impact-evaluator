@@ -85,7 +85,7 @@ contract ImpactEvaluatorTest is Test {
             "correct balance"
         );
 
-        vm.expectRevert("Round already scored");
+        vm.expectRevert("Sum of scores including historic too big");
         impactEvaluator.setScores(1, addresses, scores);
 
         vm.expectRevert("Can only score previous round");
