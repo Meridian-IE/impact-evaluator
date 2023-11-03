@@ -4,10 +4,16 @@
 //! Do not manually edit these files.
 //! These files may be overwritten by the codegen system at any time.
 pub mod access_control;
+pub mod balances;
 pub mod context;
+pub mod ecdsa;
 pub mod erc165;
 pub mod i_access_control;
 pub mod ierc165;
 pub mod impact_evaluator;
+pub mod math;
+pub mod nonces;
+pub mod signed_math;
 pub mod std_invariant;
 pub mod std_style;
+pub mod strings;
