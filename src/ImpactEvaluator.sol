@@ -6,18 +6,19 @@ import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
 contract ImpactEvaluator is AccessControl, Nonces {
-    struct Round {
-        uint index;
-        uint totalScores;
-        uint roundReward;
-    }
+    uint public currentRoundIndex;
+    uint public currentRoundEndBlockNumber;
+    uint public currentRoundRoundReward;
 
-    Round[] public openRounds;
+    uint public previousRoundIndex;
+    uint public previousRoundTotalScores;
+    uint public previousRoundRoundReward;
+
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
+
     uint64 public constant MAX_SCORE = 1e15;
-    uint public currentRoundIndex;
-    uint public currentRoundEnd;
+
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
 
@@ -40,19 +41,20 @@ contract ImpactEvaluator is AccessControl, Nonces {
     receive() external payable {}
 
     function advanceRound() private {
-        uint nextRoundIndex = openRounds.length == 0
-            ? 0
-            : currentRoundIndex + 1;
         uint availableInContract = address(this).balance - balanceHeld;
         uint nextAvailableRoundReward = availableInContract < roundReward
             ? availableInContract
             : roundReward;
         balanceHeld += nextAvailableRoundReward;
-        Round memory round = Round(nextRoundIndex, 0, nextAvailableRoundReward);
-        currentRoundEnd = block.number + nextRoundLength;
-        currentRoundIndex = nextRoundIndex;
-        openRounds.push(round);
-        emit RoundStart(nextRoundIndex);
+        previousRoundIndex = currentRoundIndex;
+        previousRoundTotalScores = 0;
+        previousRoundRoundReward = currentRoundRoundReward;
+        currentRoundIndex = currentRoundEndBlockNumber == 0
+            ? 0
+            : currentRoundIndex + 1;
+        currentRoundEndBlockNumber = block.number + nextRoundLength;
+        currentRoundRoundReward = nextAvailableRoundReward;
+        emit RoundStart(currentRoundIndex);
     }
 
     function adminAdvanceRound() public onlyAdmin {
@@ -71,7 +73,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     function addMeasurements(string memory cid) public virtual returns (uint) {
         uint measurementsRoundIndex = currentRoundIndex;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
-        if (block.number >= currentRoundEnd) {
+        if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
         return measurementsRoundIndex;
@@ -86,69 +88,37 @@ contract ImpactEvaluator is AccessControl, Nonces {
             addresses.length == scores.length,
             "Addresses and scores length mismatch"
         );
-        require(roundIndex < currentRoundIndex, "Round not finished");
-
-        (uint indexInOpenRounds, Round storage round) = getOpenRound(
-            roundIndex
+        require(
+            previousRoundIndex != currentRoundIndex &&
+            roundIndex == previousRoundIndex,
+            "Can only score previous round"
         );
-        uint sumOfScores = validateScores(scores, round.totalScores);
-        reward(round, addresses, scores);
-        round.totalScores += sumOfScores;
 
-        if (round.totalScores == MAX_SCORE) {
-            deleteOpenRound(indexInOpenRounds);
-        }
+        uint sumOfScores = validateScores(scores);
+        reward(addresses, scores);
+        previousRoundTotalScores += sumOfScores;
     }
 
-    function getOpenRound(
-        uint roundIndex
-    ) private view returns (uint index, Round storage) {
-        for (uint i = 0; i < openRounds.length; i++) {
-            if (openRounds[i].index == roundIndex) {
-                return (i, openRounds[i]);
-            }
-        }
-        revert("Open round does not exist");
-    }
-
-    function deleteOpenRound(uint indexInOpenRounds) private {
-        // Remove the round while shrinking the array.
-        for (uint i = indexInOpenRounds; i < openRounds.length - 1; i++) {
-            openRounds[i] = openRounds[i + 1];
-        }
-        openRounds.pop();
-    }
-
-    function adminDeleteOpenRound(uint roundIndex) public onlyAdmin {
-        require(roundIndex < currentRoundIndex, "Round not finished");
-        (uint indexInOpenRounds, ) = getOpenRound(roundIndex);
-        deleteOpenRound(indexInOpenRounds);
-    }
-
-    function validateScores(
-        uint64[] memory scores,
-        uint scoresAlreadySubmitted
-    ) private pure returns (uint) {
+    function validateScores(uint64[] memory scores) public view returns (uint) {
         uint64 sum = 0;
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];
         }
         require(sum <= MAX_SCORE, "Sum of scores too big");
         require(
-            sum + scoresAlreadySubmitted <= MAX_SCORE,
+            sum + previousRoundTotalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
         return sum;
     }
 
     function reward(
-        Round storage round,
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
-            uint amount = (scores[i] * round.roundReward) / MAX_SCORE;
+            uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant == 0x000000000000000000000000000000000000dEaD) {
                 balanceHeld -= amount;
             } else {
@@ -197,6 +167,10 @@ contract ImpactEvaluator is AccessControl, Nonces {
         _withdraw(account, payable(msg.sender), 0.1 ether);
         _withdraw(account, target, value - 0.1 ether);
         emit Withdrawal(account, target, value - 0.1 ether);
+    }
+
+    function currentRoundEnd() public view returns (uint) {
+        return currentRoundEndBlockNumber;
     }
 
     modifier onlyAdmin() {

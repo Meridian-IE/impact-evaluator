@@ -85,8 +85,11 @@ contract ImpactEvaluatorTest is Test {
             "correct balance"
         );
 
-        vm.expectRevert("Open round does not exist");
+        vm.expectRevert("Sum of scores including historic too big");
         impactEvaluator.setScores(1, addresses, scores);
+
+        vm.expectRevert("Can only score previous round");
+        impactEvaluator.setScores(0, addresses, scores);
     }
 
     function test_SetScoresMultipleParticipants() public {
@@ -215,23 +218,8 @@ contract ImpactEvaluatorTest is Test {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         address payable[] memory addresses = new address payable[](0);
         uint64[] memory scores = new uint64[](0);
-        vm.expectRevert("Round not finished");
+        vm.expectRevert("Can only score previous round");
         impactEvaluator.setScores(0, addresses, scores);
-    }
-
-    function test_AdminDeleteOpenRound() public {
-        ImpactEvaluator impactEvaluator = new ImpactEvaluator(
-            address(vm.addr(1))
-        );
-        vm.expectRevert("Not an admin");
-        impactEvaluator.adminDeleteOpenRound(0);
-
-        impactEvaluator = new ImpactEvaluator(address(this));
-        vm.expectRevert("Round not finished");
-        impactEvaluator.adminDeleteOpenRound(0);
-
-        impactEvaluator.adminAdvanceRound();
-        impactEvaluator.adminDeleteOpenRound(0);
     }
 
     function test_AdvanceRoundCleanUp() public {
