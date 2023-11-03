@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import "./Balances.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl, Nonces {
+contract ImpactEvaluator is AccessControl, Nonces, Balances {
     uint public currentRoundIndex;
     uint public currentRoundEndBlockNumber;
     uint public currentRoundRoundReward;
@@ -19,16 +18,12 @@ contract ImpactEvaluator is AccessControl, Nonces {
 
     uint64 public constant MAX_SCORE = 1e15;
 
-    mapping(address => uint) public balances;
-    uint public balanceHeld = 0;
-
     event MeasurementsAdded(
         string cid,
         uint roundIndex,
         address indexed sender
     );
     event RoundStart(uint roundIndex);
-    event Withdrawal(address indexed account, address target, uint256 value);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -41,11 +36,11 @@ contract ImpactEvaluator is AccessControl, Nonces {
     receive() external payable {}
 
     function advanceRound() private {
-        uint availableInContract = address(this).balance - balanceHeld;
+        uint availableInContract = availableBalance();
         uint nextAvailableRoundReward = availableInContract < roundReward
             ? availableInContract
             : roundReward;
-        balanceHeld += nextAvailableRoundReward;
+        reserveBalance(nextAvailableRoundReward);
         previousRoundIndex = currentRoundIndex;
         previousRoundTotalScores = 0;
         previousRoundRoundReward = currentRoundRoundReward;
@@ -120,53 +115,11 @@ contract ImpactEvaluator is AccessControl, Nonces {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant == 0x000000000000000000000000000000000000dEaD) {
-                balanceHeld -= amount;
+                freeUpBalance(amount);
             } else {
-                balances[participant] += amount;
+                assignBalance(participant, amount);
             }
         }
-    }
-
-    function balanceOf(address account) public view returns (uint) {
-        return balances[account];
-    }
-
-    function _withdraw(
-        address account,
-        address payable target,
-        uint value
-    ) private {
-        require(balances[account] >= value, "Insufficient balance");
-        balances[account] -= value;
-        balanceHeld -= value;
-        if (balances[account] == 0) {
-            delete balances[account];
-        }
-        require(target.send(value), "Withdrawal failed");
-    }
-
-    function withdraw(address payable target, uint value) public {
-        _withdraw(msg.sender, target, value);
-        emit Withdrawal(msg.sender, target, value);
-    }
-
-    function withdrawOnBehalf(
-        address account,
-        address payable target,
-        uint value,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public {
-        bytes32 digest = keccak256(
-            abi.encode(account, _useNonce(account), msg.sender, target, value)
-        );
-        address signer = ECDSA.recover(digest, v, r, s);
-        require(signer == account, "Invalid signature");
-
-        _withdraw(account, payable(msg.sender), 0.1 ether);
-        _withdraw(account, target, value - 0.1 ether);
-        emit Withdrawal(account, target, value - 0.1 ether);
     }
 
     function currentRoundEnd() public view returns (uint) {
