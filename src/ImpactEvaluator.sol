@@ -8,7 +8,7 @@ pragma solidity ^0.8.19;
 contract ImpactEvaluator is AccessControl, Nonces {
     struct Round {
         uint index;
-        uint end;
+        uint endBlockNumber;
         uint totalScores;
         uint roundReward;
     }
@@ -47,7 +47,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
         balanceHeld += nextAvailableRoundReward;
         previousRound = currentRound;
         currentRound = Round(
-            currentRound.end == 0 ? 0 : currentRound.index + 1,
+            currentRound.endBlockNumber == 0 ? 0 : currentRound.index + 1,
             block.number + nextRoundLength,
             0,
             nextAvailableRoundReward
@@ -71,7 +71,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     function addMeasurements(string memory cid) public virtual returns (uint) {
         uint measurementsRoundIndex = currentRound.index;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
-        if (block.number >= currentRound.end) {
+        if (block.number >= currentRound.endBlockNumber) {
             advanceRound();
         }
         return measurementsRoundIndex;
@@ -172,7 +172,7 @@ contract ImpactEvaluator is AccessControl, Nonces {
     }
 
     function currentRoundEnd() public view returns (uint) {
-        return currentRound.end;
+        return currentRound.endBlockNumber;
     }
 
     modifier onlyAdmin() {
