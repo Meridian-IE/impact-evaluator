@@ -17,15 +17,6 @@ contract Balances {
         return balances[participant];
     }
 
-    function reserveBalance(uint amount) internal {
-        // `advanceRound` ensures `amount` doesn't exceed the available balance
-        balanceHeld += amount;
-    }
-
-    function releaseBalance(uint amount) internal {
-        balanceHeld -= amount;
-    }
-
     function availableBalance() public view returns (uint) {
         return address(this).balance - balanceHeld;
     }
@@ -37,6 +28,7 @@ contract Balances {
         uint oldBalance = balances[participant];
         uint newBalance = oldBalance + amount;
         balances[participant] = newBalance;
+        balanceHeld += amount;
         if (
             oldBalance <= minBalanceForTransfer &&
             newBalance > minBalanceForTransfer
@@ -59,13 +51,17 @@ contract Balances {
             address payable participant = scheduledForTransfer[
                 scheduledForTransfer.length - 1
             ];
+            scheduledForTransfer.pop();
             uint amount = balanceOf(participant);
+
+            delete balances[participant];
+            balanceHeld -= amount;
+
             if (participant.send(amount)) {
                 emit Transfer(participant, amount);
             } else {
                 emit TransferFailed(participant, amount);
             }
-            scheduledForTransfer.pop();
         }
     }
 

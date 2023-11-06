@@ -12,6 +12,7 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public previousRoundIndex;
     uint public previousRoundTotalScores;
     uint public previousRoundRoundReward;
+    uint public previousRoundRemainingReward;
 
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -36,14 +37,16 @@ contract ImpactEvaluator is AccessControl, Balances {
     receive() external payable {}
 
     function advanceRound() private {
-        uint availableInContract = availableBalance();
+        uint availableInContract = availableBalance() -
+            previousRoundRemainingReward -
+            currentRoundRoundReward;
         uint nextAvailableRoundReward = availableInContract < roundReward
             ? availableInContract
             : roundReward;
-        reserveBalance(nextAvailableRoundReward);
         previousRoundIndex = currentRoundIndex;
         previousRoundTotalScores = 0;
         previousRoundRoundReward = currentRoundRoundReward;
+        previousRoundRemainingReward = currentRoundRoundReward;
         currentRoundIndex = currentRoundEndBlockNumber == 0
             ? 0
             : currentRoundIndex + 1;
@@ -125,11 +128,10 @@ contract ImpactEvaluator is AccessControl, Balances {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
-            if (participant == 0x000000000000000000000000000000000000dEaD) {
-                releaseBalance(amount);
-            } else {
+            if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
             }
+            previousRoundRemainingReward -= amount;
         }
     }
 
