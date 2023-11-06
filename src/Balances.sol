@@ -40,7 +40,13 @@ contract Balances {
         }
     }
 
-    function transferRewards() internal {
+    function maybeTransferRewards() internal {
+        if (participantsReadyForTransfer.length > 0) {
+            transferRewards();
+        }
+    }
+
+    function transferRewards() private {
         if (participantsReadyForTransfer.length <= maxTransfersPerTick) {
             for (uint i = 0; i < participantsReadyForTransfer.length; i++) {
                 transferReward(i);

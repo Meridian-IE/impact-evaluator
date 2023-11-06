@@ -69,10 +69,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
-
-        if (participantsReadyForTransfer.length > 0) {
-            transferRewards();
-        }
+        maybeTransferRewards();
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
