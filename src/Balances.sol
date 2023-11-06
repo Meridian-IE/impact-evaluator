@@ -52,8 +52,8 @@ contract Balances {
                 scheduledForTransfer.length - 1
             ];
             scheduledForTransfer.pop();
-            uint amount = balanceOf(participant);
 
+            uint amount = balances[participant];
             delete balances[participant];
             balanceHeld -= amount;
 
