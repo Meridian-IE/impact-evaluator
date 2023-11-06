@@ -42,7 +42,7 @@ contract Balances {
         delete readyForTransfer;
     }
 
-    function maybeTransferRewards() internal {
+    function transferScheduled() internal {
         for (
             uint i = 0;
             i < scheduledForTransfer.length && i < maxTransfersPerTick;
