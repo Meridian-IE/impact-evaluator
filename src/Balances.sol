@@ -15,11 +15,11 @@ contract Balances is Nonces {
     }
 
     function availableBalance() public view returns (uint) {
-      return address(this).balance - balanceHeld;
+        return address(this).balance - balanceHeld;
     }
 
     function releaseBalance(uint amount) internal {
-      balanceHeld -= amount;
+        balanceHeld -= amount;
     }
 
     function reserveBalance(uint amount) internal {
@@ -28,7 +28,7 @@ contract Balances is Nonces {
     }
 
     function assignBalance(address account, uint amount) internal {
-      balances[account] += amount;
+        balances[account] += amount;
     }
 
     function _withdraw(
