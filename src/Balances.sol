@@ -18,7 +18,7 @@ contract Balances is Nonces {
       return address(this).balance - balanceHeld;
     }
 
-    function freeUpBalance(uint amount) internal {
+    function releaseBalance(uint amount) internal {
       balanceHeld -= amount;
     }
 

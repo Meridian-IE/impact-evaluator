@@ -115,7 +115,7 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant == 0x000000000000000000000000000000000000dEaD) {
-                freeUpBalance(amount);
+                releaseBalance(amount);
             } else {
                 assignBalance(participant, amount);
             }
