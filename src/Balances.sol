@@ -3,16 +3,26 @@
 pragma solidity ^0.8.19;
 
 contract Balances {
-    address payable[] participantsReadyForTransfer;
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
+    address payable[] readyForTransfer;
+    address payable[] scheduledForTransfer;
     uint public maxTransfersPerTick = 10;
+    uint public minBalanceForTransfer = 1 ether;
 
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
 
     function balanceOf(address participant) public view returns (uint) {
         return balances[participant];
+    }
+
+    function _setMaxTransfersPerTick(uint _maxTransfersPerTick) internal {
+        maxTransfersPerTick = _maxTransfersPerTick;
+    }
+
+    function _setMinBalanceForTransfer(uint _minBalanceForTransfer) internal {
+        minBalanceForTransfer = _minBalanceForTransfer;
     }
 
     function reserveBalance(uint amount) internal {
@@ -35,51 +45,35 @@ contract Balances {
         uint oldBalance = balances[participant];
         uint newBalance = oldBalance + amount;
         balances[participant] = newBalance;
-        if (oldBalance <= 1 ether && newBalance > 1 ether) {
-            participantsReadyForTransfer.push(participant);
+        if (
+            oldBalance <= minBalanceForTransfer &&
+            newBalance > minBalanceForTransfer
+        ) {
+            readyForTransfer.push(participant);
         }
+    }
+
+    function _releaseRewards() internal {
+        scheduledForTransfer = readyForTransfer;
+        delete readyForTransfer;
     }
 
     function maybeTransferRewards() internal {
-        if (participantsReadyForTransfer.length > 0) {
-            transferRewards();
-        }
-    }
-
-    function transferRewards() private {
-        if (participantsReadyForTransfer.length <= maxTransfersPerTick) {
-            for (uint i = 0; i < participantsReadyForTransfer.length; i++) {
-                transferReward(i);
+        for (
+            uint i = 0;
+            i < scheduledForTransfer.length && i < maxTransfersPerTick;
+            i++
+        ) {
+            address payable participant = scheduledForTransfer[
+                scheduledForTransfer.length - 1
+            ];
+            uint amount = balanceOf(participant);
+            if (participant.send(amount)) {
+                emit Transfer(participant, amount);
+            } else {
+                emit TransferFailed(participant, amount);
             }
-            delete participantsReadyForTransfer;
-        } else {
-            for (
-                uint i = 0;
-                i < maxTransfersPerTick &&
-                    i < participantsReadyForTransfer.length;
-                i++
-            ) {
-                uint index = uint(blockhash(block.number + i)) %
-                    participantsReadyForTransfer.length;
-                transferReward(index);
-                participantsReadyForTransfer[
-                    index
-                ] = participantsReadyForTransfer[
-                    participantsReadyForTransfer.length - 1
-                ];
-                participantsReadyForTransfer.pop();
-            }
-        }
-    }
-
-    function transferReward(uint index) private {
-        address payable participant = participantsReadyForTransfer[index];
-        uint amount = balanceOf(participant);
-
-        if (participant.send(amount)) {
-            emit Transfer(participant, amount);
-        } else {
-            emit TransferFailed(participant, amount);
+            scheduledForTransfer.pop();
         }
     }
 }

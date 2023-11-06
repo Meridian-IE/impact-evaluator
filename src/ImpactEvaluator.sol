@@ -65,7 +65,13 @@ contract ImpactEvaluator is AccessControl, Balances {
         roundReward = _roundReward;
     }
 
-    function tick() private {
+    function setMaxTransfersPerTick(
+        uint _maxTransfersPerTick
+    ) public onlyAdmin {
+        _setMaxTransfersPerTick(_maxTransfersPerTick);
+    }
+
+    function tick() public {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
@@ -125,6 +131,16 @@ contract ImpactEvaluator is AccessControl, Balances {
                 increaseParticipantBalance(participant, amount);
             }
         }
+    }
+
+    function releaseRewards() public onlyAdmin {
+        _releaseRewards();
+    }
+
+    function setMinBalanceForTransfer(
+        uint _minBalanceForTransfer
+    ) public onlyAdmin {
+        _setMinBalanceForTransfer(_minBalanceForTransfer);
     }
 
     modifier onlyAdmin() {
