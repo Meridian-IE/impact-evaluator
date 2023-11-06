@@ -8,10 +8,6 @@
 
 ### `.addMeasurements(string cid) -> uint`
 
-### `.withdraw(address payable target, uint value)`
-
-### `.withdrawOnBehalf(address account, address payable target, uint value, uint8 v, bytes32 r, bytes32 s)`
-
 ## Evaluator functions
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
@@ -48,8 +44,6 @@ will be called and the round finishes.
 ### `MeasurementsAdded(string cid, uint roundIndex, address indexed sender)`
 
 ### `RoundStart(uint roundIndex)`
-
-### `Withdrawal(address indexed account, address target, uint value)`
 
 ## Development
 
