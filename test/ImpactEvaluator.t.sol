@@ -16,7 +16,10 @@ contract ImpactEvaluatorTest is Test {
     function test_AdvanceRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.currentRoundIndex(), 0);
-        assertEq(impactEvaluator.currentRoundEnd(), block.number + 10);
+        assertEq(
+            impactEvaluator.currentRoundEndBlockNumber(),
+            block.number + 10
+        );
         vm.expectEmit(false, false, false, true);
         emit RoundStart(1);
         impactEvaluator.adminAdvanceRound();
@@ -25,11 +28,20 @@ contract ImpactEvaluatorTest is Test {
 
     function test_SetNextRoundLength() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.currentRoundEnd(), block.number + 10);
+        assertEq(
+            impactEvaluator.currentRoundEndBlockNumber(),
+            block.number + 10
+        );
         impactEvaluator.setNextRoundLength(20);
-        assertEq(impactEvaluator.currentRoundEnd(), block.number + 10);
+        assertEq(
+            impactEvaluator.currentRoundEndBlockNumber(),
+            block.number + 10
+        );
         impactEvaluator.adminAdvanceRound();
-        assertEq(impactEvaluator.currentRoundEnd(), block.number + 20);
+        assertEq(
+            impactEvaluator.currentRoundEndBlockNumber(),
+            block.number + 20
+        );
         vm.expectRevert("Next round length must be positive");
         impactEvaluator.setNextRoundLength(0);
     }

@@ -127,10 +127,6 @@ contract ImpactEvaluator is AccessControl, Balances {
         }
     }
 
-    function currentRoundEnd() public view returns (uint) {
-        return currentRoundEndBlockNumber;
-    }
-
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         _;
