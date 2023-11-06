@@ -65,12 +65,20 @@ contract ImpactEvaluator is AccessControl, Balances {
         roundReward = _roundReward;
     }
 
-    function addMeasurements(string memory cid) public virtual returns (uint) {
-        uint measurementsRoundIndex = currentRoundIndex;
-        emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
+    function tick() private {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
+
+        if (participantsReadyForTransfer.length > 0) {
+            transferRewards();
+        }
+    }
+
+    function addMeasurements(string memory cid) public virtual returns (uint) {
+        uint measurementsRoundIndex = currentRoundIndex;
+        emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
+        tick();
         return measurementsRoundIndex;
     }
 
@@ -85,7 +93,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         );
         require(
             previousRoundIndex != currentRoundIndex &&
-            roundIndex == previousRoundIndex,
+                roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
 
@@ -117,7 +125,7 @@ contract ImpactEvaluator is AccessControl, Balances {
             if (participant == 0x000000000000000000000000000000000000dEaD) {
                 releaseBalance(amount);
             } else {
-                assignBalance(participant, amount);
+                increaseParticipantBalance(participant, amount);
             }
         }
     }
