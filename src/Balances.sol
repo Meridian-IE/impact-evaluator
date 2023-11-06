@@ -17,14 +17,6 @@ contract Balances {
         return balances[participant];
     }
 
-    function _setMaxTransfersPerTick(uint _maxTransfersPerTick) internal {
-        maxTransfersPerTick = _maxTransfersPerTick;
-    }
-
-    function _setMinBalanceForTransfer(uint _minBalanceForTransfer) internal {
-        minBalanceForTransfer = _minBalanceForTransfer;
-    }
-
     function reserveBalance(uint amount) internal {
         // `advanceRound` ensures `amount` doesn't exceed the available balance
         balanceHeld += amount;
@@ -75,5 +67,13 @@ contract Balances {
             }
             scheduledForTransfer.pop();
         }
+    }
+
+    function _setMaxTransfersPerTick(uint _maxTransfersPerTick) internal {
+        maxTransfersPerTick = _maxTransfersPerTick;
+    }
+
+    function _setMinBalanceForTransfer(uint _minBalanceForTransfer) internal {
+        minBalanceForTransfer = _minBalanceForTransfer;
     }
 }
