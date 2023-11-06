@@ -4,7 +4,7 @@ import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import "./Balances.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl, Nonces, Balances {
+contract ImpactEvaluator is AccessControl, Balances {
     uint public currentRoundIndex;
     uint public currentRoundEndBlockNumber;
     uint public currentRoundRoundReward;

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
-import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
-contract Balances is Nonces {
+contract Balances {
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
 
