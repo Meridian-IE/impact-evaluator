@@ -23,7 +23,8 @@ contract Balances is Nonces {
     }
 
     function reserveBalance(uint amount) internal {
-      balanceHeld += amount;
+        // `advanceRound` ensures `amount` doesn't exceed the available balance
+        balanceHeld += amount;
     }
 
     function assignBalance(address account, uint amount) internal {
