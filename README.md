@@ -8,6 +8,12 @@
 
 ### `.addMeasurements(string cid) -> uint`
 
+### `.tick()`
+
+### `.rewardsScheduledFor(address participant) -> uint`
+
+### `.availableBalance() -> uint`
+
 ## Evaluator functions
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`
@@ -19,11 +25,13 @@ will be called and the round finishes.
 
 ### `.adminAdvanceRound()`
 
-### `.adminDeleteRound(uint openRoundIndex)`
-
 ### `.setNextRoundLength(uint nextRoundLength)`
 
 ### `.setRoundReward(uint roundReward)`
+
+### `.setMaxTransfersPerTx(uint max)`
+
+### `.releaseRewards()`
 
 ## Getters / Views
 
@@ -44,6 +52,10 @@ will be called and the round finishes.
 ### `MeasurementsAdded(string cid, uint roundIndex, address indexed sender)`
 
 ### `RoundStart(uint roundIndex)`
+
+### `Transfer(address indexed to, uint amount)`
+
+### `TransferFailed(address indexed to, uint amount)`
 
 ## Development
 
