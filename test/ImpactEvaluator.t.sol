@@ -364,6 +364,82 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.releaseRewards();
     }
 
+    function test_TransferScheduled() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        impactEvaluator.setMaxTransfersPerTx(5);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        uint64 participants = 10;
+        address payable[] memory addresses = new address payable[](
+            participants
+        );
+        uint64[] memory scores = new uint64[](participants);
+        for (uint i = 0; i < participants; i++) {
+            addresses[i] = payable(vm.addr(i + 1));
+            scores[i] = impactEvaluator.MAX_SCORE() / participants;
+        }
+        impactEvaluator.setScores(1, addresses, scores);
+        for (uint i = 0; i < participants; i++) {
+            assertEq(impactEvaluator.readyForTransfer(i), vm.addr(i + 1));
+            vm.expectRevert();
+            impactEvaluator.scheduledForTransfer(i);
+        }
+
+        impactEvaluator.releaseRewards();
+        for (uint i = 0; i < 10; i++) {
+            vm.expectRevert();
+            impactEvaluator.readyForTransfer(i);
+        }
+        for (uint i = 0; i < 5; i++) {
+            assertEq(impactEvaluator.scheduledForTransfer(i), vm.addr(i + 1));
+        }
+        vm.expectRevert();
+        impactEvaluator.scheduledForTransfer(5);
+        for (uint i = 0; i < 5; i++) {
+            assertEq(
+                vm.addr(participants - i).balance,
+                10 ether,
+                string.concat(
+                    "paid participant ",
+                    Strings.toString(participants - i - 1),
+                    " in first tick"
+                )
+            );
+        }
+        assertEq(vm.addr(5).balance, 0, "didn't pay more than 5 participants");
+
+        impactEvaluator.tick();
+        for (uint i = 0; i < 10; i++) {
+            vm.expectRevert();
+            impactEvaluator.readyForTransfer(i);
+            vm.expectRevert();
+            impactEvaluator.scheduledForTransfer(i);
+        }
+        for (uint i = 0; i < 5; i++) {
+            assertEq(
+                vm.addr(i + 1).balance,
+                10 ether,
+                string.concat(
+                    "paid participant ",
+                    Strings.toString(i),
+                    " in second tick"
+                )
+            );
+            assertEq(
+                vm.addr(i + 1 + 5).balance,
+                10 ether,
+                string.concat(
+                    "didn't pay participant ",
+                    Strings.toString(i),
+                    " extra in second tick"
+                )
+            );
+        }
+    }
+
     function test_AvailableBalance() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(impactEvaluator.availableBalance(), 0);
