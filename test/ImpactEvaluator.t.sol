@@ -354,7 +354,6 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(vm.addr(1).balance, 0);
         impactEvaluator.releaseRewards();
-        impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 100 ether);
 
         impactEvaluator.revokeRole(
@@ -386,7 +385,6 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.availableBalance(), 100 ether);
 
         impactEvaluator.releaseRewards();
-        impactEvaluator.tick();
         assertEq(impactEvaluator.availableBalance(), 100 ether);
     }
 }
