@@ -40,6 +40,10 @@ contract Balances {
     }
 
     function _releaseRewards() internal {
+        require(
+            scheduledForTransfer.length == 0,
+            "Scheduled transfers still pending"
+        );
         scheduledForTransfer = readyForTransfer;
         delete readyForTransfer;
     }

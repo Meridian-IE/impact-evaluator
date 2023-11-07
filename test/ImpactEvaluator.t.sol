@@ -389,6 +389,9 @@ contract ImpactEvaluatorTest is Test {
         }
 
         impactEvaluator.releaseRewards();
+        vm.expectRevert("Scheduled transfers still pending");
+        impactEvaluator.releaseRewards();
+
         for (uint i = 0; i < 10; i++) {
             vm.expectRevert();
             impactEvaluator.readyForTransfer(i);
