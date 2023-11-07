@@ -68,9 +68,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         roundReward = _roundReward;
     }
 
-    function setMaxTransfersPerTx(
-        uint _maxTransfersPerTx
-    ) public onlyAdmin {
+    function setMaxTransfersPerTx(uint _maxTransfersPerTx) public onlyAdmin {
         _setMaxTransfersPerTx(_maxTransfersPerTx);
     }
 
