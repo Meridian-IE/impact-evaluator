@@ -13,7 +13,7 @@ contract Balances {
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
 
-    function balanceOf(address participant) public view returns (uint) {
+    function rewardsScheduledFor(address participant) public view returns (uint) {
         return balances[participant];
     }
 

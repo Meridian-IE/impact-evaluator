@@ -91,7 +91,7 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             100 ether,
             "correct balance"
         );
@@ -120,12 +120,12 @@ contract ImpactEvaluatorTest is Test {
         scores[2] = 25e13;
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             50 ether,
             "addresses[0] balance"
         );
-        assertEq(impactEvaluator.balanceOf(addresses[1]), 25 ether);
-        assertEq(impactEvaluator.balanceOf(addresses[2]), 25 ether);
+        assertEq(impactEvaluator.rewardsScheduledFor(addresses[1]), 25 ether);
+        assertEq(impactEvaluator.rewardsScheduledFor(addresses[2]), 25 ether);
     }
 
     function test_SetScoresFractions() public {
@@ -142,12 +142,12 @@ contract ImpactEvaluatorTest is Test {
         scores[1] = 1;
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             100 ether - 1e5,
             "addresses[0] balance"
         );
         assertEq(
-            impactEvaluator.balanceOf(addresses[1]),
+            impactEvaluator.rewardsScheduledFor(addresses[1]),
             1e5,
             "addresses[1] balance"
         );
@@ -177,7 +177,7 @@ contract ImpactEvaluatorTest is Test {
         }
         for (uint i = 0; i < iterations; i++) {
             assertEq(
-                impactEvaluator.balanceOf(vm.addr(i + 1)),
+                impactEvaluator.rewardsScheduledFor(vm.addr(i + 1)),
                 100 ether / iterations,
                 string.concat("address[", Strings.toString(i), "] balance")
             );
@@ -247,10 +247,10 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.addMeasurements("cid");
     }
 
-    function test_BalanceOf() public {
+    function test_rewardsScheduledFor() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         assertEq(
-            impactEvaluator.balanceOf(address(this)),
+            impactEvaluator.rewardsScheduledFor(address(this)),
             0,
             "initial balance"
         );
@@ -266,7 +266,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(1, addresses, scores);
 
         assertEq(
-            impactEvaluator.balanceOf(address(this)),
+            impactEvaluator.rewardsScheduledFor(address(this)),
             100 ether,
             "final balance"
         );
@@ -285,7 +285,7 @@ contract ImpactEvaluatorTest is Test {
 
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             100 ether,
             "full reward"
         );
@@ -293,7 +293,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.setScores(2, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             150 ether,
             "remaining reward"
         );
@@ -301,7 +301,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.setScores(3, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(addresses[0]),
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
             150 ether,
             "no extra reward"
         );
@@ -331,7 +331,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(address(this));
         impactEvaluator.setScores(3, addresses, scores);
         assertEq(
-            impactEvaluator.balanceOf(address(this)),
+            impactEvaluator.rewardsScheduledFor(address(this)),
             100 ether,
             "burner reward was added back to the pool"
         );
