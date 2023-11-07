@@ -364,4 +364,29 @@ contract ImpactEvaluatorTest is Test {
         vm.expectRevert("Not an admin");
         impactEvaluator.releaseRewards();
     }
+
+    function test_AvailableBalance() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.availableBalance(), 0);
+        vm.deal(payable(address(impactEvaluator)), 200 ether);
+        assertEq(impactEvaluator.availableBalance(), 200 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(impactEvaluator.availableBalance(), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
+        impactEvaluator.setScores(2, addresses, scores);
+        assertEq(impactEvaluator.availableBalance(), 100 ether);
+
+        impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
+        assertEq(impactEvaluator.availableBalance(), 100 ether);
+    }
 }
