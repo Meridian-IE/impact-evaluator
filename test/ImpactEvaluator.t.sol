@@ -336,4 +336,22 @@ contract ImpactEvaluatorTest is Test {
             "burner reward was added back to the pool"
         );
     }
+
+    function test_ReleaseReward() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(vm.addr(1).balance, 0);
+        impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
+        assertEq(vm.addr(1).balance, 100 ether);
+    }
 }
