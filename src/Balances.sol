@@ -45,9 +45,10 @@ contract Balances {
     }
 
     function transferScheduled() internal {
+        uint totalScheduledForTransfer = scheduledForTransfer.length;
         for (
             uint i = 0;
-            i < scheduledForTransfer.length && i < maxTransfersPerTick;
+            i < totalScheduledForTransfer && i < maxTransfersPerTx;
             i++
         ) {
             address payable participant = scheduledForTransfer[
