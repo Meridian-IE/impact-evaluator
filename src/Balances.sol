@@ -7,7 +7,7 @@ contract Balances {
     uint public balanceHeld = 0;
     address payable[] readyForTransfer;
     address payable[] scheduledForTransfer;
-    uint public maxTransfersPerTick = 10;
+    uint public maxTransfersPerTx = 10;
     uint public minBalanceForTransfer = 1 ether;
 
     event Transfer(address indexed to, uint256 amount);
@@ -65,8 +65,8 @@ contract Balances {
         }
     }
 
-    function _setMaxTransfersPerTick(uint _maxTransfersPerTick) internal {
-        maxTransfersPerTick = _maxTransfersPerTick;
+    function _setMaxTransfersPerTx(uint _maxTransfersPerTx) internal {
+        maxTransfersPerTx = _maxTransfersPerTx;
     }
 
     function _setMinBalanceForTransfer(uint _minBalanceForTransfer) internal {
