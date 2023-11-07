@@ -438,6 +438,14 @@ contract ImpactEvaluatorTest is Test {
                 )
             );
         }
+
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.expectRevert("Not an admin");
+        impactEvaluator.setMaxTransfersPerTx(0);
+        assertEq(impactEvaluator.maxTransfersPerTx(), 5);
     }
 
     function test_AvailableBalance() public {
@@ -491,6 +499,8 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(3, addresses, scores);
         impactEvaluator.releaseRewards();
         assertEq(vm.addr(1).balance, 2.7 ether);
+
+        assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
 
         impactEvaluator.revokeRole(
             impactEvaluator.DEFAULT_ADMIN_ROLE(),
