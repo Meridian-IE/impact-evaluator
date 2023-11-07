@@ -5,8 +5,8 @@ pragma solidity ^0.8.19;
 contract Balances {
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
-    address payable[] readyForTransfer;
-    address payable[] scheduledForTransfer;
+    address payable[] public readyForTransfer;
+    address payable[] public scheduledForTransfer;
     uint public maxTransfersPerTx = 10;
     uint public minBalanceForTransfer = 1 ether;
 
