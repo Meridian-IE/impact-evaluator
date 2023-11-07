@@ -382,6 +382,8 @@ contract ImpactEvaluatorTest is Test {
             scores[i] = impactEvaluator.MAX_SCORE() / participants;
         }
         impactEvaluator.setScores(1, addresses, scores);
+        assertEq(impactEvaluator.participantCountReadyForTransfer(), 10);
+        assertEq(impactEvaluator.participantCountScheduledForTransfer(), 0);
         for (uint i = 0; i < participants; i++) {
             assertEq(impactEvaluator.readyForTransfer(i), vm.addr(i + 1));
             vm.expectRevert();
@@ -392,10 +394,12 @@ contract ImpactEvaluatorTest is Test {
         vm.expectRevert("Scheduled transfers still pending");
         impactEvaluator.releaseRewards();
 
+        assertEq(impactEvaluator.participantCountReadyForTransfer(), 0);
         for (uint i = 0; i < 10; i++) {
             vm.expectRevert();
             impactEvaluator.readyForTransfer(i);
         }
+        assertEq(impactEvaluator.participantCountScheduledForTransfer(), 5);
         for (uint i = 0; i < 5; i++) {
             assertEq(impactEvaluator.scheduledForTransfer(i), vm.addr(i + 1));
         }
@@ -415,6 +419,8 @@ contract ImpactEvaluatorTest is Test {
         assertEq(vm.addr(5).balance, 0, "didn't pay more than 5 participants");
 
         impactEvaluator.tick();
+        assertEq(impactEvaluator.participantCountReadyForTransfer(), 0);
+        assertEq(impactEvaluator.participantCountScheduledForTransfer(), 0);
         for (uint i = 0; i < 10; i++) {
             vm.expectRevert();
             impactEvaluator.readyForTransfer(i);
