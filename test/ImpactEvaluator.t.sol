@@ -344,6 +344,9 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
 
+        impactEvaluator.releaseRewards();
+        assertEq(vm.addr(1).balance, 0);
+
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
         uint64[] memory scores = new uint64[](1);
@@ -353,5 +356,12 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.releaseRewards();
         impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 100 ether);
+
+        impactEvaluator.revokeRole(
+            impactEvaluator.DEFAULT_ADMIN_ROLE(),
+            address(this)
+        );
+        vm.expectRevert("Not an admin");
+        impactEvaluator.releaseRewards();
     }
 }
