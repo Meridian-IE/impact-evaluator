@@ -138,12 +138,6 @@ contract ImpactEvaluator is AccessControl, Balances {
         transferScheduled();
     }
 
-    function setMinBalanceForTransfer(
-        uint _minBalanceForTransfer
-    ) public onlyAdmin {
-        _setMinBalanceForTransfer(_minBalanceForTransfer);
-    }
-
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         _;

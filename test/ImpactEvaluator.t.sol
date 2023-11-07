@@ -475,7 +475,7 @@ contract ImpactEvaluatorTest is Test {
     function test_MinBalanceForTransfer() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         vm.deal(payable(address(impactEvaluator)), 100 ether);
-        impactEvaluator.setRoundReward(0.9 ether);
+        impactEvaluator.setRoundReward(0.4 ether);
 
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
@@ -492,21 +492,8 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.setScores(2, addresses, scores);
         impactEvaluator.releaseRewards();
-        assertEq(vm.addr(1).balance, 1.8 ether);
-
-        impactEvaluator.setMinBalanceForTransfer(0.5 ether);
-        impactEvaluator.adminAdvanceRound();
-        impactEvaluator.setScores(3, addresses, scores);
-        impactEvaluator.releaseRewards();
-        assertEq(vm.addr(1).balance, 2.7 ether);
+        assertEq(vm.addr(1).balance, 0.8 ether);
 
         assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
-
-        impactEvaluator.revokeRole(
-            impactEvaluator.DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
-        vm.expectRevert("Not an admin");
-        impactEvaluator.setMinBalanceForTransfer(0);
     }
 }
