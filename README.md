@@ -14,6 +14,10 @@
 
 ### `.availableBalance() -> uint`
 
+### `.participantCountReadyForTransfer() -> uint`
+
+### `.participantCountScheduledForTransfer() -> uint`
+
 ## Evaluator functions
 
 ### `.setScores(uint roundIndex, address payable[] addresses, uint[] scores)`

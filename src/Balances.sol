@@ -23,6 +23,14 @@ contract Balances {
         return address(this).balance - balanceHeld;
     }
 
+    function participantCountReadyForTransfer() public view returns (uint) {
+        return readyForTransfer.length;
+    }
+
+    function participantCountScheduledForTransfer() public view returns (uint) {
+        return scheduledForTransfer.length;
+    }
+
     function increaseParticipantBalance(
         address payable participant,
         uint amount
