@@ -4,7 +4,7 @@ import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 import "./Balances.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl, Nonces, Balances {
+contract ImpactEvaluator is AccessControl, Balances {
     uint public currentRoundIndex;
     uint public currentRoundEndBlockNumber;
     uint public currentRoundRoundReward;
@@ -12,6 +12,7 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
     uint public previousRoundIndex;
     uint public previousRoundTotalScores;
     uint public previousRoundRoundReward;
+    uint public previousRoundRemainingReward;
 
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -36,14 +37,16 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
     receive() external payable {}
 
     function advanceRound() private {
-        uint availableInContract = availableBalance();
+        uint availableInContract = availableBalance() -
+            previousRoundRemainingReward -
+            currentRoundRoundReward;
         uint nextAvailableRoundReward = availableInContract < roundReward
             ? availableInContract
             : roundReward;
-        reserveBalance(nextAvailableRoundReward);
         previousRoundIndex = currentRoundIndex;
         previousRoundTotalScores = 0;
         previousRoundRoundReward = currentRoundRoundReward;
+        previousRoundRemainingReward = currentRoundRoundReward;
         currentRoundIndex = currentRoundEndBlockNumber == 0
             ? 0
             : currentRoundIndex + 1;
@@ -65,12 +68,21 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
         roundReward = _roundReward;
     }
 
-    function addMeasurements(string memory cid) public virtual returns (uint) {
-        uint measurementsRoundIndex = currentRoundIndex;
-        emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
+    function setMaxTransfersPerTx(uint _maxTransfersPerTx) public onlyAdmin {
+        _setMaxTransfersPerTx(_maxTransfersPerTx);
+    }
+
+    function tick() public {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
+        transferScheduled();
+    }
+
+    function addMeasurements(string memory cid) public virtual returns (uint) {
+        uint measurementsRoundIndex = currentRoundIndex;
+        emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
+        tick();
         return measurementsRoundIndex;
     }
 
@@ -85,7 +97,7 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
         );
         require(
             previousRoundIndex != currentRoundIndex &&
-            roundIndex == previousRoundIndex,
+                roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
 
@@ -114,16 +126,16 @@ contract ImpactEvaluator is AccessControl, Nonces, Balances {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
-            if (participant == 0x000000000000000000000000000000000000dEaD) {
-                releaseBalance(amount);
-            } else {
-                assignBalance(participant, amount);
+            if (participant != 0x000000000000000000000000000000000000dEaD) {
+                increaseParticipantBalance(participant, amount);
             }
+            previousRoundRemainingReward -= amount;
         }
     }
 
-    function currentRoundEnd() public view returns (uint) {
-        return currentRoundEndBlockNumber;
+    function releaseRewards() public onlyAdmin {
+        _releaseRewards();
+        transferScheduled();
     }
 
     modifier onlyAdmin() {

@@ -8,9 +8,11 @@
 
 ### `.addMeasurements(string cid) -> uint`
 
-### `.withdraw(address payable target, uint value)`
+### `.tick()`
 
-### `.withdrawOnBehalf(address account, address payable target, uint value, uint8 v, bytes32 r, bytes32 s)`
+### `.rewardsScheduledFor(address participant) -> uint`
+
+### `.availableBalance() -> uint`
 
 ## Evaluator functions
 
@@ -23,11 +25,13 @@ will be called and the round finishes.
 
 ### `.adminAdvanceRound()`
 
-### `.adminDeleteRound(uint openRoundIndex)`
-
 ### `.setNextRoundLength(uint nextRoundLength)`
 
 ### `.setRoundReward(uint roundReward)`
+
+### `.setMaxTransfersPerTx(uint max)`
+
+### `.releaseRewards()`
 
 ## Getters / Views
 
@@ -49,7 +53,9 @@ will be called and the round finishes.
 
 ### `RoundStart(uint roundIndex)`
 
-### `Withdrawal(address indexed account, address target, uint value)`
+### `Transfer(address indexed to, uint amount)`
+
+### `TransferFailed(address indexed to, uint amount)`
 
 ## Development
 

@@ -1,71 +1,78 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
-import "../lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 pragma solidity ^0.8.19;
 
-contract Balances is Nonces {
-    event Withdrawal(address indexed account, address target, uint256 value);
-
+contract Balances {
     mapping(address => uint) public balances;
     uint public balanceHeld = 0;
+    address payable[] public readyForTransfer;
+    address payable[] public scheduledForTransfer;
+    uint public maxTransfersPerTx = 10;
+    uint public minBalanceForTransfer = 0.5 ether;
 
-    function balanceOf(address account) public view returns (uint) {
-        return balances[account];
+    event Transfer(address indexed to, uint256 amount);
+    event TransferFailed(address indexed to, uint256 amount);
+
+    function rewardsScheduledFor(
+        address participant
+    ) public view returns (uint) {
+        return balances[participant];
     }
 
     function availableBalance() public view returns (uint) {
         return address(this).balance - balanceHeld;
     }
 
-    function releaseBalance(uint amount) internal {
-        balanceHeld -= amount;
-    }
-
-    function reserveBalance(uint amount) internal {
-        // `advanceRound` ensures `amount` doesn't exceed the available balance
+    function increaseParticipantBalance(
+        address payable participant,
+        uint amount
+    ) internal {
+        uint oldBalance = balances[participant];
+        uint newBalance = oldBalance + amount;
+        balances[participant] = newBalance;
         balanceHeld += amount;
-    }
-
-    function assignBalance(address account, uint amount) internal {
-        balances[account] += amount;
-    }
-
-    function _withdraw(
-        address account,
-        address payable target,
-        uint value
-    ) private {
-        require(balances[account] >= value, "Insufficient balance");
-        balances[account] -= value;
-        balanceHeld -= value;
-        if (balances[account] == 0) {
-            delete balances[account];
+        if (
+            oldBalance <= minBalanceForTransfer &&
+            newBalance > minBalanceForTransfer
+        ) {
+            readyForTransfer.push(participant);
         }
-        require(target.send(value), "Withdrawal failed");
     }
 
-    function withdraw(address payable target, uint value) public {
-        _withdraw(msg.sender, target, value);
-        emit Withdrawal(msg.sender, target, value);
-    }
-
-    function withdrawOnBehalf(
-        address account,
-        address payable target,
-        uint value,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public {
-        bytes32 digest = keccak256(
-            abi.encode(account, _useNonce(account), msg.sender, target, value)
+    function _releaseRewards() internal {
+        require(
+            scheduledForTransfer.length == 0,
+            "Scheduled transfers still pending"
         );
-        address signer = ECDSA.recover(digest, v, r, s);
-        require(signer == account, "Invalid signature");
+        scheduledForTransfer = readyForTransfer;
+        delete readyForTransfer;
+    }
 
-        _withdraw(account, payable(msg.sender), 0.1 ether);
-        _withdraw(account, target, value - 0.1 ether);
-        emit Withdrawal(account, target, value - 0.1 ether);
+    function transferScheduled() internal {
+        uint totalScheduledForTransfer = scheduledForTransfer.length;
+        for (
+            uint i = 0;
+            i < totalScheduledForTransfer && i < maxTransfersPerTx;
+            i++
+        ) {
+            address payable participant = scheduledForTransfer[
+                scheduledForTransfer.length - 1
+            ];
+            scheduledForTransfer.pop();
+
+            uint amount = balances[participant];
+            delete balances[participant];
+            balanceHeld -= amount;
+
+            if (participant.send(amount)) {
+                emit Transfer(participant, amount);
+            } else {
+                emit TransferFailed(participant, amount);
+            }
+        }
+    }
+
+    function _setMaxTransfersPerTx(uint _maxTransfersPerTx) internal {
+        maxTransfersPerTx = _maxTransfersPerTx;
     }
 }
