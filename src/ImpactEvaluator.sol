@@ -103,7 +103,10 @@ contract ImpactEvaluator is AccessControl, Balances {
 
         uint sumOfScores = validateScores(scores);
         reward(addresses, scores);
-        previousRoundTotalScores += sumOfScores;
+        // Scores have passed `validateScores()`
+        unchecked {
+            previousRoundTotalScores += sumOfScores;
+        }
     }
 
     function validateScores(uint64[] memory scores) public view returns (uint) {
@@ -125,11 +128,18 @@ contract ImpactEvaluator is AccessControl, Balances {
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
-            uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
+            uint amount;
+            // Scores have passed `validateScores()`
+            unchecked {
+                amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
+            }
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
             }
-            previousRoundRemainingReward -= amount;
+            // Scores have passed `validateScores()`
+            unchecked {
+                previousRoundRemainingReward -= amount;
+            }
         }
     }
 

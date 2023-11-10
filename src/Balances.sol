@@ -36,9 +36,16 @@ contract Balances {
         uint amount
     ) internal {
         uint oldBalance = balances[participant];
-        uint newBalance = oldBalance + amount;
+        uint newBalance;
+        // The monthly balance will never exceed 2^256-1 wei 
+        unchecked {
+            newBalance = oldBalance + amount;
+        }
         balances[participant] = newBalance;
-        balanceHeld += amount;
+        // The monthly total holding will never exceed 2^256-1 wei 
+        unchecked {
+            balanceHeld += amount;
+        }
         if (
             oldBalance <= minBalanceForTransfer &&
             newBalance > minBalanceForTransfer
