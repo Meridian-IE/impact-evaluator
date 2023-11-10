@@ -21,7 +21,7 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     event MeasurementsAdded(
         string cid,
-        uint roundIndex,
+        uint indexed roundIndex,
         address indexed sender
     );
     event RoundStart(uint roundIndex);

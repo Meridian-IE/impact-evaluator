@@ -53,7 +53,7 @@ will be called and the round finishes.
 
 ## Events
 
-### `MeasurementsAdded(string cid, uint roundIndex, address indexed sender)`
+### `MeasurementsAdded(string cid, uint indexed roundIndex, address indexed sender)`
 
 ### `RoundStart(uint roundIndex)`
 
