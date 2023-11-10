@@ -6,6 +6,7 @@ fs_permissions = [{ access = "read", path = "./"}]
 solc-version = "0.8.21"
 optimizer = true
 optimizer-runs = 10_000_000
+gas_reports = ["ImpactEvaluator", "Balances"]
 
 [rpc_endpoints]
 calibration = "https://api.calibration.node.glif.io/rpc/v1"
