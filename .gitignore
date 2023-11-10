@@ -6,3 +6,4 @@ out
 
 ## Rust Target Files
 **/**/target
+.gas-snapshot
