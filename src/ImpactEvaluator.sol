@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: (MIT or Apache-2.0)
 
 import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
-import "./Balances.sol";
 pragma solidity ^0.8.19;
 
-contract ImpactEvaluator is AccessControl, Balances {
+contract ImpactEvaluator is AccessControl {
     uint public currentRoundIndex;
     uint public currentRoundEndBlockNumber;
     uint public currentRoundRoundReward;
@@ -25,6 +24,8 @@ contract ImpactEvaluator is AccessControl, Balances {
         address indexed sender
     );
     event RoundStart(uint roundIndex);
+    event Transfer(address indexed to, uint256 amount);
+    event TransferFailed(address indexed to, uint256 amount);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
 
@@ -37,7 +38,7 @@ contract ImpactEvaluator is AccessControl, Balances {
     receive() external payable {}
 
     function advanceRound() private {
-        uint availableInContract = availableBalance() -
+        uint availableInContract = address(this).balance -
             previousRoundRemainingReward -
             currentRoundRoundReward;
         uint nextAvailableRoundReward = availableInContract < roundReward
@@ -68,15 +69,10 @@ contract ImpactEvaluator is AccessControl, Balances {
         roundReward = _roundReward;
     }
 
-    function setMaxTransfersPerTx(uint _maxTransfersPerTx) public onlyAdmin {
-        _setMaxTransfersPerTx(_maxTransfersPerTx);
-    }
-
     function tick() public {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
-        transferScheduled();
     }
 
     function addMeasurements(string memory cid) public virtual returns (uint) {
@@ -127,15 +123,14 @@ contract ImpactEvaluator is AccessControl, Balances {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
-                increaseParticipantBalance(participant, amount);
+                if (participant.send(amount)) {
+                    emit Transfer(participant, amount);
+                } else {
+                    emit TransferFailed(participant, amount);
+                }
             }
             previousRoundRemainingReward -= amount;
         }
-    }
-
-    function releaseRewards() public onlyAdmin {
-        _releaseRewards();
-        transferScheduled();
     }
 
     modifier onlyAdmin() {
