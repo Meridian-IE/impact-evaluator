@@ -520,4 +520,20 @@ contract ImpactEvaluatorTest is Test {
             impactEvaluator.setScores(1, addresses, scores);
         }
     }
+
+    function test_GasSetScoresManyParticipants() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        uint participants = 1000;
+        address payable[] memory addresses = new address payable[](participants);
+        uint64[] memory scores = new uint64[](participants);
+        for (uint i = 0; i < participants; i++) {
+            addresses[i] = payable(vm.addr(i + 1));
+            scores[i] = 1;
+        }
+
+        impactEvaluator.setScores(1, addresses, scores);
+    }
 }
