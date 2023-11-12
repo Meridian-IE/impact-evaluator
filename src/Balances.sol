@@ -31,6 +31,9 @@ contract Balances {
         return scheduledForTransfer.length;
     }
 
+    // `increaseParticipantBalance` and `increaseBalanceHeld` need to be called
+    // in tandem.
+
     function increaseParticipantBalance(
         address payable participant,
         uint amount
@@ -38,13 +41,16 @@ contract Balances {
         uint oldBalance = balances[participant];
         uint newBalance = oldBalance + amount;
         balances[participant] = newBalance;
-        balanceHeld += amount;
         if (
             oldBalance <= minBalanceForTransfer &&
             newBalance > minBalanceForTransfer
         ) {
             readyForTransfer.push(participant);
         }
+    }
+
+    function increaseBalanceHeld(uint amount) internal {
+        balanceHeld += amount;
     }
 
     function _releaseRewards() internal {

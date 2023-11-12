@@ -123,14 +123,17 @@ contract ImpactEvaluator is AccessControl, Balances {
         address payable[] memory addresses,
         uint64[] memory scores
     ) private {
+        uint addedBalance = 0;
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
+                addedBalance += amount;
             }
             previousRoundRemainingReward -= amount;
         }
+        increaseBalanceHeld(addedBalance);
     }
 
     function releaseRewards() public onlyAdmin {
