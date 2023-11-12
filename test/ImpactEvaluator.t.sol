@@ -534,6 +534,8 @@ contract ImpactEvaluatorTest is Test {
             scores[i] = 1;
         }
 
-        impactEvaluator.setScores(1, addresses, scores);
+        for (uint i = 0; i < 100; i++) {
+            impactEvaluator.setScores(1, addresses, scores);
+        }
     }
 }
