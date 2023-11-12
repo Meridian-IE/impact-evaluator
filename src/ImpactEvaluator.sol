@@ -100,30 +100,10 @@ contract ImpactEvaluator is AccessControl, Balances {
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-
-        uint sumOfScores = validateScores(scores);
-        reward(addresses, scores);
-        previousRoundTotalScores += sumOfScores;
-    }
-
-    function validateScores(uint64[] memory scores) public view returns (uint) {
-        uint64 sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
-        }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
-        require(
-            sum + previousRoundTotalScores <= MAX_SCORE,
-            "Sum of scores including historic too big"
-        );
-        return sum;
-    }
-
-    function reward(
-        address payable[] memory addresses,
-        uint64[] memory scores
-    ) private {
+        
+        uint64 sumOfScores = 0;
         for (uint i = 0; i < addresses.length; i++) {
+            sumOfScores += scores[i];
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
@@ -131,6 +111,12 @@ contract ImpactEvaluator is AccessControl, Balances {
             }
             previousRoundRemainingReward -= amount;
         }
+        require(sumOfScores <= MAX_SCORE, "Sum of scores too big");
+        require(
+            sumOfScores + previousRoundTotalScores <= MAX_SCORE,
+            "Sum of scores including historic too big"
+        );
+        previousRoundTotalScores += sumOfScores;
     }
 
     function releaseRewards() public onlyAdmin {
