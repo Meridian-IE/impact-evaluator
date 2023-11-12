@@ -505,4 +505,19 @@ contract ImpactEvaluatorTest is Test {
 
         assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
     }
+
+    function test_GasSetScores() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint64[] memory scores = new uint64[](1);
+        scores[0] = 1;
+
+        for (uint i = 0; i < 1000; i++) {
+            impactEvaluator.setScores(1, addresses, scores);
+        }
+    }
 }
