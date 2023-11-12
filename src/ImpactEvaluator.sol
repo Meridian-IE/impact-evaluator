@@ -124,6 +124,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         uint64[] memory scores
     ) private {
         uint addedBalance = 0;
+        uint balanceConsumed = 0;
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
             uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
@@ -131,8 +132,9 @@ contract ImpactEvaluator is AccessControl, Balances {
                 increaseParticipantBalance(participant, amount);
                 addedBalance += amount;
             }
-            previousRoundRemainingReward -= amount;
+            balanceConsumed += amount;
         }
+        previousRoundRemainingReward -= balanceConsumed;
         increaseBalanceHeld(addedBalance);
     }
 
