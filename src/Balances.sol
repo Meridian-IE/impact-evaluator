@@ -4,7 +4,6 @@ pragma solidity ^0.8.19;
 
 contract Balances {
     mapping(address => uint) public balances;
-    uint public balanceHeld = 0;
     address payable[] public readyForTransfer;
     address payable[] public scheduledForTransfer;
     uint public maxTransfersPerTx = 10;
@@ -19,10 +18,6 @@ contract Balances {
         return balances[participant];
     }
 
-    function availableBalance() public view returns (uint) {
-        return address(this).balance - balanceHeld;
-    }
-
     function participantCountReadyForTransfer() public view returns (uint) {
         return readyForTransfer.length;
     }
@@ -30,9 +25,6 @@ contract Balances {
     function participantCountScheduledForTransfer() public view returns (uint) {
         return scheduledForTransfer.length;
     }
-
-    // `increaseParticipantBalance` and `increaseBalanceHeld` need to be called
-    // in tandem.
 
     function increaseParticipantBalance(
         address payable participant,
@@ -49,10 +41,6 @@ contract Balances {
         }
     }
 
-    function increaseBalanceHeld(uint amount) internal {
-        balanceHeld += amount;
-    }
-
     function _releaseRewards() internal {
         require(
             scheduledForTransfer.length == 0,
@@ -62,7 +50,8 @@ contract Balances {
         delete readyForTransfer;
     }
 
-    function transferScheduled() internal {
+    function transferScheduled() internal returns (uint) {
+        uint removedBalance = 0;
         uint totalScheduledForTransfer = scheduledForTransfer.length;
         for (
             uint i = 0;
@@ -76,7 +65,7 @@ contract Balances {
 
             uint amount = balances[participant];
             delete balances[participant];
-            balanceHeld -= amount;
+            removedBalance += amount;
 
             if (participant.send(amount)) {
                 emit Transfer(participant, amount);
@@ -84,6 +73,7 @@ contract Balances {
                 emit TransferFailed(participant, amount);
             }
         }
+        return removedBalance;
     }
 
     function _setMaxTransfersPerTx(uint _maxTransfersPerTx) internal {

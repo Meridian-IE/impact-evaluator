@@ -454,11 +454,10 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.maxTransfersPerTx(), 5);
     }
 
-    function test_AvailableBalance() public {
+    function test_BalanceHeld() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
-        assertEq(impactEvaluator.availableBalance(), 0);
-        vm.deal(payable(address(impactEvaluator)), 200 ether);
-        assertEq(impactEvaluator.availableBalance(), 200 ether);
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        assertEq(impactEvaluator.balanceHeld(), 0);
 
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
@@ -467,15 +466,21 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
-        assertEq(impactEvaluator.availableBalance(), 100 ether);
+        assertEq(
+            impactEvaluator.balanceHeld(),
+            100 ether
+        );
 
         impactEvaluator.adminAdvanceRound();
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         impactEvaluator.setScores(2, addresses, scores);
-        assertEq(impactEvaluator.availableBalance(), 100 ether);
+        assertEq(
+            impactEvaluator.balanceHeld(),
+            100 ether
+        );
 
         impactEvaluator.releaseRewards();
-        assertEq(impactEvaluator.availableBalance(), 100 ether);
+        assertEq(impactEvaluator.balanceHeld(), 0);
     }
 
     function test_MinBalanceForTransfer() public {
@@ -524,7 +529,9 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
 
         uint participants = 1000;
-        address payable[] memory addresses = new address payable[](participants);
+        address payable[] memory addresses = new address payable[](
+            participants
+        );
         uint[] memory scores = new uint[](participants);
         for (uint i = 0; i < participants; i++) {
             addresses[i] = payable(vm.addr(i + 1));
