@@ -105,12 +105,11 @@ contract ImpactEvaluator is AccessControl, Balances {
 
         uint sumOfScores = 0;
         uint addedBalance = 0;
-        uint scoreUnit = previousRoundRoundReward / MAX_SCORE;
         for (uint i = 0; i < addresses.length; i++) {
             uint score = scores[i];
             address payable participant = addresses[i];
             sumOfScores += score;
-            uint amount = score * scoreUnit;
+            uint amount = (score * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
                 addedBalance += amount;
