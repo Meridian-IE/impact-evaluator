@@ -17,11 +17,11 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
 
-    uint64 public constant MAX_SCORE = 1e15;
+    uint public constant MAX_SCORE = 1e15;
 
     event MeasurementsAdded(
         string cid,
-        uint roundIndex,
+        uint indexed roundIndex,
         address indexed sender
     );
     event RoundStart(uint roundIndex);
@@ -79,7 +79,9 @@ contract ImpactEvaluator is AccessControl, Balances {
         transferScheduled();
     }
 
-    function addMeasurements(string memory cid) public virtual returns (uint) {
+    function addMeasurements(
+        string calldata cid
+    ) public virtual returns (uint) {
         uint measurementsRoundIndex = currentRoundIndex;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
         tick();
@@ -88,8 +90,8 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function setScores(
         uint roundIndex,
-        address payable[] memory addresses,
-        uint64[] memory scores
+        address payable[] calldata addresses,
+        uint[] calldata scores
     ) public onlyEvaluator {
         require(
             addresses.length == scores.length,
@@ -100,41 +102,27 @@ contract ImpactEvaluator is AccessControl, Balances {
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-
-        uint sumOfScores = validateScores(scores);
-        reward(addresses, scores);
-        previousRoundTotalScores += sumOfScores;
-    }
-
-    function validateScores(uint64[] memory scores) public view returns (uint) {
-        uint64 sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
-        }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
-        require(
-            sum + previousRoundTotalScores <= MAX_SCORE,
-            "Sum of scores including historic too big"
-        );
-        return sum;
-    }
-
-    function reward(
-        address payable[] memory addresses,
-        uint64[] memory scores
-    ) private {
+        
+        uint sumOfScores = 0;
         uint addedBalance = 0;
         uint balanceConsumed = 0;
         uint scoreUnit = previousRoundRoundReward / MAX_SCORE;
         for (uint i = 0; i < addresses.length; i++) {
+            uint score = scores[i];
             address payable participant = addresses[i];
-            uint amount = scores[i] * scoreUnit;
+            sumOfScores += score;
+            uint amount = score * scoreUnit;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
                 addedBalance += amount;
             }
-            balanceConsumed += amount;
+            balanceConsumed += amount;  
         }
+        require(
+            sumOfScores + previousRoundTotalScores <= MAX_SCORE,
+            "Sum of scores including historic too big"
+        );
+        previousRoundTotalScores += sumOfScores;
         previousRoundRemainingReward -= balanceConsumed;
         increaseBalanceHeld(addedBalance);
     }
