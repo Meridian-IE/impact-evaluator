@@ -114,7 +114,6 @@ contract ImpactEvaluator is AccessControl, Balances {
             }
             previousRoundRemainingReward -= amount;
         }
-        require(sumOfScores <= MAX_SCORE, "Sum of scores too big");
         require(
             sumOfScores + previousRoundTotalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
