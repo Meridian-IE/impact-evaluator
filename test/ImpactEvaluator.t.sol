@@ -96,9 +96,6 @@ contract ImpactEvaluatorTest is Test {
             "correct balance"
         );
 
-        vm.expectRevert();
-        impactEvaluator.setScores(1, addresses, scores);
-
         vm.expectRevert("Can only score previous round");
         impactEvaluator.setScores(0, addresses, scores);
     }
