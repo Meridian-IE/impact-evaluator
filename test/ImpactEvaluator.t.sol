@@ -70,7 +70,7 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresNotEvaluator() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
         vm.expectRevert("Not an evaluator");
-        impactEvaluator.setScores(0, new address payable[](0), new uint64[](0));
+        impactEvaluator.setScores(0, new address payable[](0), new uint[](0));
     }
 
     function test_SetScores() public {
@@ -83,11 +83,11 @@ contract ImpactEvaluatorTest is Test {
             address(this)
         );
         vm.expectRevert("Addresses and scores length mismatch");
-        impactEvaluator.setScores(1, new address payable[](1), new uint64[](0));
+        impactEvaluator.setScores(1, new address payable[](1), new uint[](0));
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
@@ -114,7 +114,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[1] = payable(vm.addr(2));
         addresses[2] = payable(vm.addr(3));
 
-        uint64[] memory scores = new uint64[](3);
+        uint[] memory scores = new uint[](3);
         scores[0] = 50e13;
         scores[1] = 25e13;
         scores[2] = 25e13;
@@ -137,7 +137,7 @@ contract ImpactEvaluatorTest is Test {
         address payable[] memory addresses = new address payable[](2);
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(2));
-        uint64[] memory scores = new uint64[](2);
+        uint[] memory scores = new uint[](2);
         scores[0] = impactEvaluator.MAX_SCORE() - 1;
         scores[1] = 1;
         impactEvaluator.setScores(1, addresses, scores);
@@ -158,7 +158,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
 
         address payable[] memory addresses = new address payable[](0);
-        uint64[] memory scores = new uint64[](0);
+        uint[] memory scores = new uint[](0);
         impactEvaluator.setScores(0, addresses, scores);
     }
 
@@ -167,11 +167,11 @@ contract ImpactEvaluatorTest is Test {
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
-        uint64 iterations = 10;
+        uint iterations = 10;
         for (uint i = 0; i < iterations; i++) {
             address payable[] memory addresses = new address payable[](1);
             addresses[0] = payable(vm.addr(i + 1));
-            uint64[] memory scores = new uint64[](1);
+            uint[] memory scores = new uint[](1);
             scores[0] = impactEvaluator.MAX_SCORE() / iterations;
             impactEvaluator.setScores(1, addresses, scores);
         }
@@ -190,7 +190,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE() + 1;
         vm.expectRevert("Sum of scores too big");
         impactEvaluator.setScores(0, addresses, scores);
@@ -202,7 +202,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE() - 1;
         impactEvaluator.setScores(0, addresses, scores);
 
@@ -216,7 +216,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
 
         address payable[] memory addresses = new address payable[](2);
-        uint64[] memory scores = new uint64[](2);
+        uint[] memory scores = new uint[](2);
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(1));
         scores[0] = 2 ** 64 - 1;
@@ -228,7 +228,7 @@ contract ImpactEvaluatorTest is Test {
     function test_SetScoresUnfinishedRound() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         address payable[] memory addresses = new address payable[](0);
-        uint64[] memory scores = new uint64[](0);
+        uint[] memory scores = new uint[](0);
         vm.expectRevert("Can only score previous round");
         impactEvaluator.setScores(0, addresses, scores);
     }
@@ -239,7 +239,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
 
         address payable[] memory addresses = new address payable[](1);
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         addresses[0] = payable(vm.addr(1));
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(0, addresses, scores);
@@ -261,7 +261,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(address(this));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
 
@@ -280,7 +280,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
 
         impactEvaluator.setScores(1, addresses, scores);
@@ -318,7 +318,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
 
         impactEvaluator.setScores(1, addresses, scores);
@@ -349,7 +349,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(vm.addr(1).balance, 0);
@@ -372,11 +372,11 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
 
-        uint64 participants = 10;
+        uint participants = 10;
         address payable[] memory addresses = new address payable[](
             participants
         );
-        uint64[] memory scores = new uint64[](participants);
+        uint[] memory scores = new uint[](participants);
         for (uint i = 0; i < participants; i++) {
             addresses[i] = payable(vm.addr(i + 1));
             scores[i] = impactEvaluator.MAX_SCORE() / participants;
@@ -467,7 +467,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(impactEvaluator.availableBalance(), 100 ether);
@@ -491,7 +491,7 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
 
@@ -513,10 +513,28 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](1);
         addresses[0] = payable(vm.addr(1));
-        uint64[] memory scores = new uint64[](1);
+        uint[] memory scores = new uint[](1);
         scores[0] = 1;
 
         for (uint i = 0; i < 1000; i++) {
+            impactEvaluator.setScores(1, addresses, scores);
+        }
+    }
+
+    function test_GasSetScoresManyParticipants() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        uint participants = 1000;
+        address payable[] memory addresses = new address payable[](participants);
+        uint[] memory scores = new uint[](participants);
+        for (uint i = 0; i < participants; i++) {
+            addresses[i] = payable(vm.addr(i + 1));
+            scores[i] = 1;
+        }
+
+        for (uint i = 0; i < 100; i++) {
             impactEvaluator.setScores(1, addresses, scores);
         }
     }

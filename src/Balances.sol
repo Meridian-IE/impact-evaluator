@@ -8,7 +8,7 @@ contract Balances {
     address payable[] public readyForTransfer;
     address payable[] public scheduledForTransfer;
     uint public maxTransfersPerTx = 10;
-    uint public minBalanceForTransfer = 0.5 ether;
+    uint public constant minBalanceForTransfer = 0.5 ether;
 
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
