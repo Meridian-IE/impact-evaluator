@@ -79,7 +79,9 @@ contract ImpactEvaluator is AccessControl, Balances {
         transferScheduled();
     }
 
-    function addMeasurements(string memory cid) public virtual returns (uint) {
+    function addMeasurements(
+        string calldata cid
+    ) public virtual returns (uint) {
         uint measurementsRoundIndex = currentRoundIndex;
         emit MeasurementsAdded(cid, measurementsRoundIndex, msg.sender);
         tick();
@@ -88,8 +90,8 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function setScores(
         uint roundIndex,
-        address payable[] memory addresses,
-        uint64[] memory scores
+        address payable[] calldata addresses,
+        uint64[] calldata scores
     ) public onlyEvaluator {
         require(
             addresses.length == scores.length,
