@@ -9,7 +9,7 @@ contract ImpactEvaluatorTest is Test {
     event RoundStart(uint roundIndex);
     event MeasurementsAdded(
         string cid,
-        uint roundIndex,
+        uint indexed roundIndex,
         address indexed sender
     );
 
