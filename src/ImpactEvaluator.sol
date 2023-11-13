@@ -12,7 +12,6 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public previousRoundIndex;
     uint public previousRoundTotalScores;
     uint public previousRoundRoundReward;
-    uint public previousRoundRemainingReward;
 
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -37,6 +36,8 @@ contract ImpactEvaluator is AccessControl, Balances {
     receive() external payable {}
 
     function advanceRound() private {
+        uint previousRoundRemainingReward = (1 - (previousRoundTotalScores /
+            MAX_SCORE)) * previousRoundRoundReward;
         uint availableInContract = availableBalance() -
             previousRoundRemainingReward -
             currentRoundRoundReward;
@@ -46,7 +47,6 @@ contract ImpactEvaluator is AccessControl, Balances {
         previousRoundIndex = currentRoundIndex;
         previousRoundTotalScores = 0;
         previousRoundRoundReward = currentRoundRoundReward;
-        previousRoundRemainingReward = currentRoundRoundReward;
         currentRoundIndex = currentRoundEndBlockNumber == 0
             ? 0
             : currentRoundIndex + 1;
@@ -102,10 +102,9 @@ contract ImpactEvaluator is AccessControl, Balances {
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-        
+
         uint sumOfScores = 0;
         uint addedBalance = 0;
-        uint balanceConsumed = 0;
         uint scoreUnit = previousRoundRoundReward / MAX_SCORE;
         for (uint i = 0; i < addresses.length; i++) {
             uint score = scores[i];
@@ -116,14 +115,12 @@ contract ImpactEvaluator is AccessControl, Balances {
                 increaseParticipantBalance(participant, amount);
                 addedBalance += amount;
             }
-            balanceConsumed += amount;  
         }
         require(
             sumOfScores + previousRoundTotalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
         previousRoundTotalScores += sumOfScores;
-        previousRoundRemainingReward -= balanceConsumed;
         increaseBalanceHeld(addedBalance);
     }
 
