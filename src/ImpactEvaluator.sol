@@ -102,37 +102,23 @@ contract ImpactEvaluator is AccessControl, Balances {
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-
-        uint sumOfScores = validateScores(scores);
-        reward(addresses, scores);
-        previousRoundTotalScores += sumOfScores;
-    }
-
-    function validateScores(uint[] memory scores) public view returns (uint) {
-        uint sum = 0;
-        for (uint i = 0; i < scores.length; i++) {
-            sum += scores[i];
-        }
-        require(sum <= MAX_SCORE, "Sum of scores too big");
-        require(
-            sum + previousRoundTotalScores <= MAX_SCORE,
-            "Sum of scores including historic too big"
-        );
-        return sum;
-    }
-
-    function reward(
-        address payable[] memory addresses,
-        uint[] memory scores
-    ) private {
+        
+        uint sumOfScores = 0;
         for (uint i = 0; i < addresses.length; i++) {
+            uint score = scores[i];
             address payable participant = addresses[i];
-            uint amount = (scores[i] * previousRoundRoundReward) / MAX_SCORE;
+            sumOfScores += score;
+            uint amount = (score * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
             }
             previousRoundRemainingReward -= amount;
         }
+        require(
+            sumOfScores + previousRoundTotalScores <= MAX_SCORE,
+            "Sum of scores including historic too big"
+        );
+        previousRoundTotalScores += sumOfScores;
     }
 
     function releaseRewards() public onlyAdmin {

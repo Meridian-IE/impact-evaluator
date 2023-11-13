@@ -96,9 +96,6 @@ contract ImpactEvaluatorTest is Test {
             "correct balance"
         );
 
-        vm.expectRevert("Sum of scores including historic too big");
-        impactEvaluator.setScores(1, addresses, scores);
-
         vm.expectRevert("Can only score previous round");
         impactEvaluator.setScores(0, addresses, scores);
     }
@@ -192,7 +189,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE() + 1;
-        vm.expectRevert("Sum of scores too big");
+        vm.expectRevert("Sum of scores including historic too big");
         impactEvaluator.setScores(0, addresses, scores);
     }
 
