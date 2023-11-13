@@ -17,7 +17,7 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
 
-    uint64 public constant MAX_SCORE = 1e15;
+    uint public constant MAX_SCORE = 1e15;
 
     event MeasurementsAdded(
         string cid,
@@ -91,7 +91,7 @@ contract ImpactEvaluator is AccessControl, Balances {
     function setScores(
         uint roundIndex,
         address payable[] calldata addresses,
-        uint64[] calldata scores
+        uint[] calldata scores
     ) public onlyEvaluator {
         require(
             addresses.length == scores.length,
@@ -108,8 +108,8 @@ contract ImpactEvaluator is AccessControl, Balances {
         previousRoundTotalScores += sumOfScores;
     }
 
-    function validateScores(uint64[] memory scores) public view returns (uint) {
-        uint64 sum = 0;
+    function validateScores(uint[] memory scores) public view returns (uint) {
+        uint sum = 0;
         for (uint i = 0; i < scores.length; i++) {
             sum += scores[i];
         }
@@ -123,7 +123,7 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function reward(
         address payable[] memory addresses,
-        uint64[] memory scores
+        uint[] memory scores
     ) private {
         for (uint i = 0; i < addresses.length; i++) {
             address payable participant = addresses[i];
