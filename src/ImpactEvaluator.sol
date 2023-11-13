@@ -12,7 +12,6 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public previousRoundIndex;
     uint public previousRoundTotalScores;
     uint public previousRoundRoundReward;
-    uint public previousRoundRemainingReward;
 
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
@@ -37,6 +36,8 @@ contract ImpactEvaluator is AccessControl, Balances {
     receive() external payable {}
 
     function advanceRound() private {
+        uint previousRoundRemainingReward = (1 - (previousRoundTotalScores /
+            MAX_SCORE)) * previousRoundRoundReward;
         uint availableInContract = availableBalance() -
             previousRoundRemainingReward -
             currentRoundRoundReward;
@@ -46,7 +47,6 @@ contract ImpactEvaluator is AccessControl, Balances {
         previousRoundIndex = currentRoundIndex;
         previousRoundTotalScores = 0;
         previousRoundRoundReward = currentRoundRoundReward;
-        previousRoundRemainingReward = currentRoundRoundReward;
         currentRoundIndex = currentRoundEndBlockNumber == 0
             ? 0
             : currentRoundIndex + 1;
@@ -102,8 +102,9 @@ contract ImpactEvaluator is AccessControl, Balances {
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-        
+
         uint sumOfScores = 0;
+        uint addedBalance = 0;
         for (uint i = 0; i < addresses.length; i++) {
             uint score = scores[i];
             address payable participant = addresses[i];
@@ -111,14 +112,15 @@ contract ImpactEvaluator is AccessControl, Balances {
             uint amount = (score * previousRoundRoundReward) / MAX_SCORE;
             if (participant != 0x000000000000000000000000000000000000dEaD) {
                 increaseParticipantBalance(participant, amount);
+                addedBalance += amount;
             }
-            previousRoundRemainingReward -= amount;
         }
         require(
             sumOfScores + previousRoundTotalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
         previousRoundTotalScores += sumOfScores;
+        increaseBalanceHeld(addedBalance);
     }
 
     function releaseRewards() public onlyAdmin {
