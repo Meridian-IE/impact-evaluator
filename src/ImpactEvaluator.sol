@@ -15,6 +15,7 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
+    uint public balanceHeld = 0;
 
     uint public constant MAX_SCORE = 1e15;
 
@@ -36,9 +37,10 @@ contract ImpactEvaluator is AccessControl, Balances {
     receive() external payable {}
 
     function advanceRound() private {
-        uint previousRoundRemainingReward = (1 - (previousRoundTotalScores /
-            MAX_SCORE)) * previousRoundRoundReward;
-        uint availableInContract = availableBalance() -
+        uint previousRoundRemainingReward = (1 -
+            (previousRoundTotalScores / MAX_SCORE)) * previousRoundRoundReward;
+        uint availableInContract = address(this).balance -
+            balanceHeld -
             previousRoundRemainingReward -
             currentRoundRoundReward;
         uint nextAvailableRoundReward = availableInContract < roundReward
@@ -120,12 +122,12 @@ contract ImpactEvaluator is AccessControl, Balances {
             "Sum of scores including historic too big"
         );
         previousRoundTotalScores += sumOfScores;
-        increaseBalanceHeld(addedBalance);
+        balanceHeld += addedBalance;
     }
 
     function releaseRewards() public onlyAdmin {
         _releaseRewards();
-        transferScheduled();
+        balanceHeld -= transferScheduled();
     }
 
     modifier onlyAdmin() {
