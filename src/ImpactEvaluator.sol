@@ -39,7 +39,8 @@ contract ImpactEvaluator is AccessControl, Balances {
     function advanceRound() private {
         uint previousRoundRemainingReward = (1 - (previousRoundTotalScores /
             MAX_SCORE)) * previousRoundRoundReward;
-        uint availableInContract = address(this).balance - balanceHeld -
+        uint availableInContract = address(this).balance -
+            balanceHeld -
             previousRoundRemainingReward -
             currentRoundRoundReward;
         uint nextAvailableRoundReward = availableInContract < roundReward
