@@ -508,6 +508,29 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
     }
 
+    function test_PreviousRoundRemainingReward() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 200 ether);
+
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint[] memory scores = new uint[](1);
+        scores[0] = impactEvaluator.MAX_SCORE() / 2;
+        impactEvaluator.setScores(1, addresses, scores);
+        impactEvaluator.releaseRewards();
+        assertEq(vm.addr(1).balance, 50 ether, "round 1");
+
+        impactEvaluator.adminAdvanceRound();
+
+        impactEvaluator.setScores(2, addresses, scores);
+        impactEvaluator.releaseRewards();
+        assertEq(vm.addr(1).balance, 100 ether, "round 2");
+    }
+
     function test_GasSetScores() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         impactEvaluator.adminAdvanceRound();
