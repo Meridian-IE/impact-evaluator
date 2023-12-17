@@ -11,3 +11,4 @@ while (true) {
   console.log('Transfers left:', transfersLeft)
   if (transfersLeft === 0n) break
 }
+process.exit()
