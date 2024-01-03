@@ -24,6 +24,10 @@ contract ImpactEvaluator is AccessControl, Balances {
         uint indexed roundIndex,
         address indexed sender
     );
+    event Scores(
+        uint indexed roundIndex,
+        string cid
+    );
     event RoundStart(uint roundIndex);
 
     bytes32 public constant EVALUATE_ROLE = keccak256("EVALUATE_ROLE");
@@ -89,45 +93,43 @@ contract ImpactEvaluator is AccessControl, Balances {
         tick();
         return measurementsRoundIndex;
     }
-
+    
     function setScores(
         uint roundIndex,
-        address payable[] calldata addresses,
-        uint[] calldata scores
+        string calldata cid,
+        uint totalScores
     ) public onlyEvaluator {
-        require(
-            addresses.length == scores.length,
-            "Addresses and scores length mismatch"
-        );
         require(
             previousRoundIndex != currentRoundIndex &&
                 roundIndex == previousRoundIndex,
             "Can only score previous round"
         );
-
-        uint sumOfScores = 0;
-        uint addedBalance = 0;
-        for (uint i = 0; i < addresses.length; i++) {
-            uint score = scores[i];
-            address payable participant = addresses[i];
-            sumOfScores += score;
-            uint amount = (score * previousRoundRoundReward) / MAX_SCORE;
-            if (participant != 0x000000000000000000000000000000000000dEaD) {
-                increaseParticipantBalance(participant, amount);
-                addedBalance += amount;
-            }
-        }
         require(
-            sumOfScores + previousRoundTotalScores <= MAX_SCORE,
+            totalScores <= MAX_SCORE,
             "Sum of scores including historic too big"
         );
-        previousRoundTotalScores += sumOfScores;
-        balanceHeld += addedBalance;
+        require(
+            previousRoundTotalScores == 0,
+            "Round already scored"
+        );
+        previousRoundTotalScores = totalScores;
+        balanceHeld += (totalScores * previousRoundRoundReward) / MAX_SCORE;
+
+        // `cid` points to a list of (address, score)
+        emit Scores(roundIndex, cid);
     }
 
-    function releaseRewards() public onlyAdmin {
-        _releaseRewards();
-        balanceHeld -= transferScheduled();
+    function sendRewards(
+      address payable[] calldata addresses,
+      uint[] calldata amounts
+    ) public onlyAdmin {
+        require(
+            addresses.length == amounts.length,
+            "Addresses and amounts must be same length"
+        );
+        for (uint i = 0; i < addresses.length; i++) {
+            scheduleTransfer(addresses[i], amounts[i]);
+        }
     }
 
     modifier onlyAdmin() {

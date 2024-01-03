@@ -4,13 +4,17 @@ pragma solidity ^0.8.19;
 
 contract Balances {
     mapping(address => uint) public balances;
-    address payable[] public readyForTransfer;
-    address payable[] public scheduledForTransfer;
     uint public maxTransfersPerTx = 10;
     uint public constant minBalanceForTransfer = 0.5 ether;
 
     event Transfer(address indexed to, uint256 amount);
     event TransferFailed(address indexed to, uint256 amount);
+
+    struct ScheduledTransfer {
+        address payable participant;
+        uint amount;
+    }
+    ScheduledTransfer[] public scheduledTransfers;
 
     function rewardsScheduledFor(
         address participant
@@ -18,62 +22,45 @@ contract Balances {
         return balances[participant];
     }
 
-    function participantCountReadyForTransfer() public view returns (uint) {
-        return readyForTransfer.length;
-    }
-
     function participantCountScheduledForTransfer() public view returns (uint) {
-        return scheduledForTransfer.length;
+        return scheduledTransfers.length;
     }
 
-    function increaseParticipantBalance(
+    function scheduleTransfer(
         address payable participant,
         uint amount
     ) internal {
-        uint oldBalance = balances[participant];
-        uint newBalance = oldBalance + amount;
-        balances[participant] = newBalance;
-        if (
-            oldBalance <= minBalanceForTransfer &&
-            newBalance > minBalanceForTransfer
-        ) {
-            readyForTransfer.push(participant);
-        }
-    }
-
-    function _releaseRewards() internal {
-        require(
-            scheduledForTransfer.length == 0,
-            "Scheduled transfers still pending"
-        );
-        scheduledForTransfer = readyForTransfer;
-        delete readyForTransfer;
+        scheduledTransfers.push(ScheduledTransfer({
+            participant: participant,
+            amount: amount
+        }));
     }
 
     function transferScheduled() internal returns (uint) {
         uint removedBalance = 0;
-        uint totalScheduledForTransfer = scheduledForTransfer.length;
+        uint totalScheduledForTransfer = scheduledTransfers.length;
         for (
             uint i = 0;
             i < totalScheduledForTransfer && i < maxTransfersPerTx;
             i++
         ) {
-            address payable participant = scheduledForTransfer[
-                scheduledForTransfer.length - 1
+            ScheduledTransfer memory scheduledTransfer = scheduledTransfers[
+                scheduledTransfers.length - 1
             ];
-            scheduledForTransfer.pop();
+            scheduledTransfers.pop();
 
-            uint amount = balances[participant];
-            delete balances[participant];
-            removedBalance += amount;
-
-            if (participant.send(amount)) {
-                emit Transfer(participant, amount);
+            if (scheduledTransfer.participant.send(scheduledTransfer.amount)) {
+                emit Transfer(
+                    scheduledTransfer.participant,
+                    scheduledTransfer.amount
+                );
             } else {
-                emit TransferFailed(participant, amount);
+                emit TransferFailed(
+                    scheduledTransfer.participant,
+                    scheduledTransfer.amount
+                );
             }
         }
-        return removedBalance;
     }
 
     function _setMaxTransfersPerTx(uint _maxTransfersPerTx) internal {
