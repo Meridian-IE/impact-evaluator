@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::{path::PathBuf, str::FromStr};
 
 const DEPLOY_METHOD: DeployMethod = DeployMethod::Ledger;
-const RPC_URL: &str = "https://api.node.glif.io/rpc/v1";
+const RPC_URL: &str = "https://api.chain.love/rpc/v1";
 const SECRETS_PATH: &str = "../secrets/mnemonic";
 const ABI_WRITE_PATH: &str = "../Abi.json";
 
