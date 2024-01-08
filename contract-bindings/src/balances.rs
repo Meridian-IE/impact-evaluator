@@ -16,50 +16,6 @@ pub mod balances {
             constructor: ::core::option::Option::None,
             functions: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("availableBalance"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("availableBalance"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("balanceHeld"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("balanceHeld"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("balances"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -338,13 +294,13 @@ pub mod balances {
         __abi,
     );
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`\x80`@R`\0`\x01U`\n`\x04Ug\x06\xF0[Y\xD3\xB2\0\0`\x05U4\x80\x15a\0&W`\0\x80\xFD[Pa\x02\xCE\x80a\x006`\09`\0\xF3\xFE`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\xBEW`\x005`\xE0\x1C\x80ceS}\xE3\x11a\0vW\x80c\xAB/\x0EQ\x11a\0[W\x80c\xAB/\x0EQ\x14a\x01\x83W\x80c\xCA\xD5V\\\x14a\x01\x8BW\x80c\xD3\x12\x03R\x14a\x01\x9EW`\0\x80\xFD[\x80ceS}\xE3\x14a\x01BW\x80c\x93\xFE\xDDa\x14a\x01KW`\0\x80\xFD[\x80c1s\xC2\x88\x11a\0\xA7W\x80c1s\xC2\x88\x14a\0\xFAW\x80cAs9;\x14a\x010W\x80cbLk\xE7\x14a\x019W`\0\x80\xFD[\x80c\x0F\x88\x13&\x14a\0\xC3W\x80c'\xE25\xE3\x14a\0\xDAW[`\0\x80\xFD[`\x03T[`@Q\x90\x81R` \x01[`@Q\x80\x91\x03\x90\xF3[a\0\xC7a\0\xE86`\x04a\x02\x02V[`\0` \x81\x90R\x90\x81R`@\x90 T\x81V[a\0\xC7a\x01\x086`\x04a\x02\x02V[s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16`\0\x90\x81R` \x81\x90R`@\x90 T\x90V[a\0\xC7`\x05T\x81V[a\0\xC7`\x01T\x81V[a\0\xC7`\x04T\x81V[a\x01^a\x01Y6`\x04a\x02?V[a\x01\xA6V[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\xD1V[a\0\xC7a\x01\xDDV[a\x01^a\x01\x996`\x04a\x02?V[a\x01\xF2V[`\x02Ta\0\xC7V[`\x03\x81\x81T\x81\x10a\x01\xB6W`\0\x80\xFD[`\0\x91\x82R` \x90\x91 \x01Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x90P\x81V[`\0`\x01TGa\x01\xED\x91\x90a\x02XV[\x90P\x90V[`\x02\x81\x81T\x81\x10a\x01\xB6W`\0\x80\xFD[`\0` \x82\x84\x03\x12\x15a\x02\x14W`\0\x80\xFD[\x815s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16\x81\x14a\x028W`\0\x80\xFD[\x93\x92PPPV[`\0` \x82\x84\x03\x12\x15a\x02QW`\0\x80\xFD[P5\x91\x90PV[\x81\x81\x03\x81\x81\x11\x15a\x02\x92W\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`\x11`\x04R`$`\0\xFD[\x92\x91PPV\xFE\xA2dipfsX\"\x12 \xF3\xC7\xACw1p\xCD\xA7\xE4\x1D\xDA3\x8C\xF2x\xD4\x05\xA2\0\x7F\xEF\xFB\xA3\x15\xA4\xA3*\xA7\x0FZ\xFD0dsolcC\0\x08\x15\x003";
+    const __BYTECODE: &[u8] = b"`\x80`@R`\n`\x03U4\x80\x15a\0\x15W`\0\x80\xFD[Pa\x028\x80a\0%`\09`\0\xF3\xFE`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\x88W`\x005`\xE0\x1C\x80ceS}\xE3\x11a\0[W\x80ceS}\xE3\x14a\x01\tW\x80c\x93\xFE\xDDa\x14a\x01\x12W\x80c\xCA\xD5V\\\x14a\x01JW\x80c\xD3\x12\x03R\x14a\x01]W`\0\x80\xFD[\x80c\x0F\x88\x13&\x14a\0\x8DW\x80c'\xE25\xE3\x14a\0\xA4W\x80c1s\xC2\x88\x14a\0\xC4W\x80cAs9;\x14a\0\xFAW[`\0\x80\xFD[`\x02T[`@Q\x90\x81R` \x01[`@Q\x80\x91\x03\x90\xF3[a\0\x91a\0\xB26`\x04a\x01\xACV[`\0` \x81\x90R\x90\x81R`@\x90 T\x81V[a\0\x91a\0\xD26`\x04a\x01\xACV[s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16`\0\x90\x81R` \x81\x90R`@\x90 T\x90V[a\0\x91g\x06\xF0[Y\xD3\xB2\0\0\x81V[a\0\x91`\x03T\x81V[a\x01%a\x01 6`\x04a\x01\xE9V[a\x01eV[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\x9BV[a\x01%a\x01X6`\x04a\x01\xE9V[a\x01\x9CV[`\x01Ta\0\x91V[`\x02\x81\x81T\x81\x10a\x01uW`\0\x80\xFD[`\0\x91\x82R` \x90\x91 \x01Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x90P\x81V[`\x01\x81\x81T\x81\x10a\x01uW`\0\x80\xFD[`\0` \x82\x84\x03\x12\x15a\x01\xBEW`\0\x80\xFD[\x815s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16\x81\x14a\x01\xE2W`\0\x80\xFD[\x93\x92PPPV[`\0` \x82\x84\x03\x12\x15a\x01\xFBW`\0\x80\xFD[P5\x91\x90PV\xFE\xA2dipfsX\"\x12 LN-R\x1D\xD5\xD3&)\x0Ctp\xB8\xF9\xC4x9\xC3\xFFB1\xEB\x81r~ZM3\x182\xD7\xB9dsolcC\0\x08\x15\x003";
     /// The bytecode of the contract.
     pub static BALANCES_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\xBEW`\x005`\xE0\x1C\x80ceS}\xE3\x11a\0vW\x80c\xAB/\x0EQ\x11a\0[W\x80c\xAB/\x0EQ\x14a\x01\x83W\x80c\xCA\xD5V\\\x14a\x01\x8BW\x80c\xD3\x12\x03R\x14a\x01\x9EW`\0\x80\xFD[\x80ceS}\xE3\x14a\x01BW\x80c\x93\xFE\xDDa\x14a\x01KW`\0\x80\xFD[\x80c1s\xC2\x88\x11a\0\xA7W\x80c1s\xC2\x88\x14a\0\xFAW\x80cAs9;\x14a\x010W\x80cbLk\xE7\x14a\x019W`\0\x80\xFD[\x80c\x0F\x88\x13&\x14a\0\xC3W\x80c'\xE25\xE3\x14a\0\xDAW[`\0\x80\xFD[`\x03T[`@Q\x90\x81R` \x01[`@Q\x80\x91\x03\x90\xF3[a\0\xC7a\0\xE86`\x04a\x02\x02V[`\0` \x81\x90R\x90\x81R`@\x90 T\x81V[a\0\xC7a\x01\x086`\x04a\x02\x02V[s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16`\0\x90\x81R` \x81\x90R`@\x90 T\x90V[a\0\xC7`\x05T\x81V[a\0\xC7`\x01T\x81V[a\0\xC7`\x04T\x81V[a\x01^a\x01Y6`\x04a\x02?V[a\x01\xA6V[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\xD1V[a\0\xC7a\x01\xDDV[a\x01^a\x01\x996`\x04a\x02?V[a\x01\xF2V[`\x02Ta\0\xC7V[`\x03\x81\x81T\x81\x10a\x01\xB6W`\0\x80\xFD[`\0\x91\x82R` \x90\x91 \x01Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x90P\x81V[`\0`\x01TGa\x01\xED\x91\x90a\x02XV[\x90P\x90V[`\x02\x81\x81T\x81\x10a\x01\xB6W`\0\x80\xFD[`\0` \x82\x84\x03\x12\x15a\x02\x14W`\0\x80\xFD[\x815s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16\x81\x14a\x028W`\0\x80\xFD[\x93\x92PPPV[`\0` \x82\x84\x03\x12\x15a\x02QW`\0\x80\xFD[P5\x91\x90PV[\x81\x81\x03\x81\x81\x11\x15a\x02\x92W\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`\x11`\x04R`$`\0\xFD[\x92\x91PPV\xFE\xA2dipfsX\"\x12 \xF3\xC7\xACw1p\xCD\xA7\xE4\x1D\xDA3\x8C\xF2x\xD4\x05\xA2\0\x7F\xEF\xFB\xA3\x15\xA4\xA3*\xA7\x0FZ\xFD0dsolcC\0\x08\x15\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\x88W`\x005`\xE0\x1C\x80ceS}\xE3\x11a\0[W\x80ceS}\xE3\x14a\x01\tW\x80c\x93\xFE\xDDa\x14a\x01\x12W\x80c\xCA\xD5V\\\x14a\x01JW\x80c\xD3\x12\x03R\x14a\x01]W`\0\x80\xFD[\x80c\x0F\x88\x13&\x14a\0\x8DW\x80c'\xE25\xE3\x14a\0\xA4W\x80c1s\xC2\x88\x14a\0\xC4W\x80cAs9;\x14a\0\xFAW[`\0\x80\xFD[`\x02T[`@Q\x90\x81R` \x01[`@Q\x80\x91\x03\x90\xF3[a\0\x91a\0\xB26`\x04a\x01\xACV[`\0` \x81\x90R\x90\x81R`@\x90 T\x81V[a\0\x91a\0\xD26`\x04a\x01\xACV[s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16`\0\x90\x81R` \x81\x90R`@\x90 T\x90V[a\0\x91g\x06\xF0[Y\xD3\xB2\0\0\x81V[a\0\x91`\x03T\x81V[a\x01%a\x01 6`\x04a\x01\xE9V[a\x01eV[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\x9BV[a\x01%a\x01X6`\x04a\x01\xE9V[a\x01\x9CV[`\x01Ta\0\x91V[`\x02\x81\x81T\x81\x10a\x01uW`\0\x80\xFD[`\0\x91\x82R` \x90\x91 \x01Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x90P\x81V[`\x01\x81\x81T\x81\x10a\x01uW`\0\x80\xFD[`\0` \x82\x84\x03\x12\x15a\x01\xBEW`\0\x80\xFD[\x815s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16\x81\x14a\x01\xE2W`\0\x80\xFD[\x93\x92PPPV[`\0` \x82\x84\x03\x12\x15a\x01\xFBW`\0\x80\xFD[P5\x91\x90PV\xFE\xA2dipfsX\"\x12 LN-R\x1D\xD5\xD3&)\x0Ctp\xB8\xF9\xC4x9\xC3\xFFB1\xEB\x81r~ZM3\x182\xD7\xB9dsolcC\0\x08\x15\x003";
     /// The deployed bytecode of the contract.
     pub static BALANCES_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
@@ -424,22 +380,6 @@ pub mod balances {
             let deployer = factory.deploy(constructor_args)?;
             let deployer = ::ethers::contract::ContractDeployer::new(deployer);
             Ok(deployer)
-        }
-        ///Calls the contract's `availableBalance` (0xab2f0e51) function
-        pub fn available_balance(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([171, 47, 14, 81], ())
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `balanceHeld` (0x624c6be7) function
-        pub fn balance_held(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([98, 76, 107, 231], ())
-                .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `balances` (0x27e235e3) function
         pub fn balances(
@@ -623,32 +563,6 @@ pub mod balances {
             Self::TransferFailedFilter(value)
         }
     }
-    ///Container type for all input parameters for the `availableBalance` function with signature `availableBalance()` and selector `0xab2f0e51`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "availableBalance", abi = "availableBalance()")]
-    pub struct AvailableBalanceCall;
-    ///Container type for all input parameters for the `balanceHeld` function with signature `balanceHeld()` and selector `0x624c6be7`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "balanceHeld", abi = "balanceHeld()")]
-    pub struct BalanceHeldCall;
     ///Container type for all input parameters for the `balances` function with signature `balances(address)` and selector `0x27e235e3`
     #[derive(
         Clone,
@@ -764,8 +678,6 @@ pub mod balances {
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum BalancesCalls {
-        AvailableBalance(AvailableBalanceCall),
-        BalanceHeld(BalanceHeldCall),
         Balances(BalancesCall),
         MaxTransfersPerTx(MaxTransfersPerTxCall),
         MinBalanceForTransfer(MinBalanceForTransferCall),
@@ -780,16 +692,6 @@ pub mod balances {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded)
-                = <AvailableBalanceCall as ::ethers::core::abi::AbiDecode>::decode(
-                    data,
-                ) {
-                return Ok(Self::AvailableBalance(decoded));
-            }
-            if let Ok(decoded)
-                = <BalanceHeldCall as ::ethers::core::abi::AbiDecode>::decode(data) {
-                return Ok(Self::BalanceHeld(decoded));
-            }
             if let Ok(decoded)
                 = <BalancesCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Balances(decoded));
@@ -842,12 +744,6 @@ pub mod balances {
     impl ::ethers::core::abi::AbiEncode for BalancesCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::AvailableBalance(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::BalanceHeld(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::Balances(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -878,8 +774,6 @@ pub mod balances {
     impl ::core::fmt::Display for BalancesCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::AvailableBalance(element) => ::core::fmt::Display::fmt(element, f),
-                Self::BalanceHeld(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Balances(element) => ::core::fmt::Display::fmt(element, f),
                 Self::MaxTransfersPerTx(element) => ::core::fmt::Display::fmt(element, f),
                 Self::MinBalanceForTransfer(element) => {
@@ -899,16 +793,6 @@ pub mod balances {
                     ::core::fmt::Display::fmt(element, f)
                 }
             }
-        }
-    }
-    impl ::core::convert::From<AvailableBalanceCall> for BalancesCalls {
-        fn from(value: AvailableBalanceCall) -> Self {
-            Self::AvailableBalance(value)
-        }
-    }
-    impl ::core::convert::From<BalanceHeldCall> for BalancesCalls {
-        fn from(value: BalanceHeldCall) -> Self {
-            Self::BalanceHeld(value)
         }
     }
     impl ::core::convert::From<BalancesCall> for BalancesCalls {
@@ -952,30 +836,6 @@ pub mod balances {
             Self::ScheduledForTransfer(value)
         }
     }
-    ///Container type for all return fields from the `availableBalance` function with signature `availableBalance()` and selector `0xab2f0e51`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct AvailableBalanceReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `balanceHeld` function with signature `balanceHeld()` and selector `0x624c6be7`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct BalanceHeldReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `balances` function with signature `balances(address)` and selector `0x27e235e3`
     #[derive(
         Clone,
