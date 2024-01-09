@@ -74,6 +74,29 @@ contract ImpactEvaluator is AccessControl, Balances {
         _setMaxTransfersPerTx(_maxTransfersPerTx);
     }
 
+    function setMinBalanceForTransfer(
+        uint _minBalanceForTransfer
+    ) public onlyAdmin {
+        _setMinBalanceForTransfer(_minBalanceForTransfer);
+    }
+
+    function addBalances(
+        address payable[] calldata addresses,
+        uint[] calldata _balances
+    ) public payable onlyAdmin {
+        uint totalAmount = 0;
+        for (uint i = 0; i < _balances.length; i++) {
+            totalAmount += _balances[i];
+        }
+        require(
+            msg.value == totalAmount,
+            "Total amount must match msg.value"
+        );
+        for (uint i = 0; i < addresses.length; i++) {
+            increaseParticipantBalance(addresses[i], _balances[i]);
+        }
+    }
+
     function tick() public {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();

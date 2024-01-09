@@ -565,4 +565,45 @@ contract ImpactEvaluatorTest is Test {
             impactEvaluator.setScores(1, addresses, scores);
         }
     }
+
+    function test_SetMinBalanceForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
+        impactEvaluator.setMinBalanceForTransfer(1 ether);
+        assertEq(impactEvaluator.minBalanceForTransfer(), 1 ether);
+        impactEvaluator.setMinBalanceForTransfer(0);
+        assertEq(impactEvaluator.minBalanceForTransfer(), 0);
+    }
+
+    function test_SetMinBalanceForTransferNotAdmin() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(0x1));
+        vm.expectRevert("Not an admin");
+        impactEvaluator.setMinBalanceForTransfer(1 ether);
+    }
+
+    function test_AddBalances() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+
+        address payable[] memory addresses = new address payable[](2);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory balances = new uint[](2);
+        balances[0] = 50 ether;
+        balances[1] = 50 ether;
+
+        vm.expectRevert("Total amount must match msg.value");
+        impactEvaluator.addBalances{ value: 0 }(addresses, balances);
+
+        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        assertEq(
+            impactEvaluator.rewardsScheduledFor(addresses[0]),
+            50 ether,
+            "addresses[0] balance"
+        );
+        assertEq(
+            impactEvaluator.rewardsScheduledFor(addresses[1]),
+            50 ether,
+            "addresses[1] balance"
+        );
+    }
 }
