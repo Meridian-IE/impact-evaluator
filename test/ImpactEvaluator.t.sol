@@ -591,7 +591,7 @@ contract ImpactEvaluatorTest is Test {
         balances[0] = 50 ether;
         balances[1] = 50 ether;
 
-        vm.expectRevert("Total amount must match msg.value");
+        vm.expectRevert("Sum of balances must match msg.value");
         impactEvaluator.addBalances{ value: 0 }(addresses, balances);
 
         impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
