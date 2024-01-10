@@ -35,6 +35,10 @@ will be called and the round finishes.
 
 ### `.setMaxTransfersPerTx(uint max)`
 
+### `setMinBalanceForTransfer(uint min)`
+
+### `addBalances(address[] addresses, uint[] balances)`
+
 ### `.releaseRewards()`
 
 ## Getters / Views
