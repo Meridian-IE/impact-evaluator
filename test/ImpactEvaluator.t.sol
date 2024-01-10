@@ -605,5 +605,6 @@ contract ImpactEvaluatorTest is Test {
             50 ether,
             "addresses[1] balance"
         );
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
     }
 }

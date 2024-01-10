@@ -95,6 +95,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         for (uint i = 0; i < addresses.length; i++) {
             increaseParticipantBalance(addresses[i], _balances[i]);
         }
+        balanceHeld += totalAmount;
     }
 
     function tick() public {
