@@ -90,7 +90,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         }
         require(
             msg.value == totalAmount,
-            "Total amount must match msg.value"
+            "Sum of balances must match msg.value"
         );
         for (uint i = 0; i < addresses.length; i++) {
             increaseParticipantBalance(addresses[i], _balances[i]);
