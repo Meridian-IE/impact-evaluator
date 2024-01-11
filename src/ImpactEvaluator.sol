@@ -154,6 +154,10 @@ contract ImpactEvaluator is AccessControl, Balances {
         balanceHeld -= transferScheduled();
     }
 
+    function availableBalance() public view returns (uint) {
+        return address(this).balance - balanceHeld;
+    }
+
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not an admin");
         _;

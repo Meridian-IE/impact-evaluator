@@ -483,6 +483,35 @@ contract ImpactEvaluatorTest is Test {
         assertEq(impactEvaluator.balanceHeld(), 0);
     }
 
+    function test_AvailableBalance() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+        assertEq(impactEvaluator.availableBalance(), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint[] memory scores = new uint[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(
+            impactEvaluator.availableBalance(),
+            0 ether
+        );
+
+        impactEvaluator.adminAdvanceRound();
+        addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
+        impactEvaluator.setScores(2, addresses, scores);
+        assertEq(
+            impactEvaluator.availableBalance(),
+            0 ether
+        );
+
+        impactEvaluator.releaseRewards();
+        assertEq(impactEvaluator.availableBalance(), 0);
+    }
+
     function test_MinBalanceForTransfer() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         vm.deal(payable(address(impactEvaluator)), 100 ether);
