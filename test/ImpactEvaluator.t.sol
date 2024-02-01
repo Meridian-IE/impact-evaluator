@@ -456,15 +456,18 @@ contract ImpactEvaluatorTest is Test {
 
     function test_BalanceHeld() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.setMaxTransfersPerTx(1);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         assertEq(impactEvaluator.balanceHeld(), 0);
 
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
-        address payable[] memory addresses = new address payable[](1);
+        address payable[] memory addresses = new address payable[](2);
         addresses[0] = payable(vm.addr(1));
-        uint[] memory scores = new uint[](1);
-        scores[0] = impactEvaluator.MAX_SCORE();
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory scores = new uint[](2);
+        scores[0] = impactEvaluator.MAX_SCORE() / 2;
+        scores[1] = impactEvaluator.MAX_SCORE() / 2;
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
             impactEvaluator.balanceHeld(),
@@ -480,6 +483,8 @@ contract ImpactEvaluatorTest is Test {
         );
 
         impactEvaluator.releaseRewards();
+        assertEq(impactEvaluator.balanceHeld(), 50 ether);
+        impactEvaluator.tick();
         assertEq(impactEvaluator.balanceHeld(), 0);
     }
 
