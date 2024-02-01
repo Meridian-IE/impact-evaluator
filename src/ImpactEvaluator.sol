@@ -16,6 +16,7 @@ contract ImpactEvaluator is AccessControl, Balances {
     uint public nextRoundLength = 10;
     uint public roundReward = 100 ether;
     uint public balanceHeld = 0;
+    bool public withdrawDisabled = false;
 
     uint public constant MAX_SCORE = 1e15;
 
@@ -155,6 +156,18 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function availableBalance() public view returns (uint) {
         return address(this).balance - balanceHeld;
+    }
+
+    function withdraw(address payable destination) public onlyAdmin {
+        require(!withdrawDisabled, "Withdraw disabled");
+        require(
+            destination.send(address(this).balance),
+            "Transfer failed"
+        );
+    }
+
+    function disableWithdraw() public onlyAdmin {
+        withdrawDisabled = true;
     }
 
     modifier onlyAdmin() {

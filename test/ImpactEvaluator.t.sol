@@ -552,7 +552,6 @@ contract ImpactEvaluatorTest is Test {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         vm.deal(payable(address(impactEvaluator)), 200 ether);
 
-
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
 
@@ -648,5 +647,48 @@ contract ImpactEvaluatorTest is Test {
             "addresses[1] balance"
         );
         assertEq(impactEvaluator.balanceHeld(), 100 ether);
+    }
+
+    function test_WithdrawNotAdmin() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(vm.addr(1));
+        vm.expectRevert("Not an admin");
+        impactEvaluator.withdraw(payable(vm.addr(1)));
+    }
+
+    function test_Withdraw() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        // Ensure we withdraw all even if balance are held
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint[] memory balances = new uint[](2);
+        balances[0] = 100 ether;
+        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+
+        impactEvaluator.withdraw(payable(vm.addr(1)));
+
+        assertEq(vm.addr(1).balance, 200 ether);
+    }
+
+    function test_DisableWithdrawNotAdmin() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(vm.addr(1));
+        vm.expectRevert("Not an admin");
+        impactEvaluator.disableWithdraw();
+    }
+
+    function test_DisableWithdraw() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.disableWithdraw();
+        vm.expectRevert("Withdraw disabled");
+        impactEvaluator.withdraw(payable(vm.addr(1)));
+
+        impactEvaluator.disableWithdraw();
+        vm.expectRevert("Withdraw disabled");
+        impactEvaluator.withdraw(payable(vm.addr(1)));
+
+        assertEq(vm.addr(1).balance, 0);
     }
 }
