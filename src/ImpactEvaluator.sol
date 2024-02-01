@@ -151,7 +151,6 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function releaseRewards() public onlyAdmin {
         _releaseRewards();
-        balanceHeld -= transferScheduled();
     }
 
     function availableBalance() public view returns (uint) {
