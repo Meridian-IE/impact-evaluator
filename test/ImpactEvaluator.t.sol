@@ -351,6 +351,8 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(vm.addr(1).balance, 0);
         impactEvaluator.releaseRewards();
+        assertEq(vm.addr(1).balance, 0);
+        impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 100 ether);
 
         impactEvaluator.revokeRole(
@@ -390,6 +392,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.releaseRewards();
         vm.expectRevert("Scheduled transfers still pending");
         impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
 
         assertEq(impactEvaluator.participantCountReadyForTransfer(), 0);
         for (uint i = 0; i < 10; i++) {
@@ -456,15 +459,18 @@ contract ImpactEvaluatorTest is Test {
 
     function test_BalanceHeld() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        impactEvaluator.setMaxTransfersPerTx(1);
         vm.deal(payable(address(impactEvaluator)), 100 ether);
         assertEq(impactEvaluator.balanceHeld(), 0);
 
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
-        address payable[] memory addresses = new address payable[](1);
+        address payable[] memory addresses = new address payable[](2);
         addresses[0] = payable(vm.addr(1));
-        uint[] memory scores = new uint[](1);
-        scores[0] = impactEvaluator.MAX_SCORE();
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory scores = new uint[](2);
+        scores[0] = impactEvaluator.MAX_SCORE() / 2;
+        scores[1] = impactEvaluator.MAX_SCORE() / 2;
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
             impactEvaluator.balanceHeld(),
@@ -480,6 +486,10 @@ contract ImpactEvaluatorTest is Test {
         );
 
         impactEvaluator.releaseRewards();
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
+        impactEvaluator.tick();
+        assertEq(impactEvaluator.balanceHeld(), 50 ether);
+        impactEvaluator.tick();
         assertEq(impactEvaluator.balanceHeld(), 0);
     }
 
@@ -532,6 +542,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.setScores(2, addresses, scores);
         impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 0.8 ether);
 
         assertEq(impactEvaluator.minBalanceForTransfer(), 0.5 ether);
@@ -551,12 +562,14 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE() / 2;
         impactEvaluator.setScores(1, addresses, scores);
         impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 50 ether, "round 1");
 
         impactEvaluator.adminAdvanceRound();
 
         impactEvaluator.setScores(2, addresses, scores);
         impactEvaluator.releaseRewards();
+        impactEvaluator.tick();
         assertEq(vm.addr(1).balance, 100 ether, "round 2");
     }
 

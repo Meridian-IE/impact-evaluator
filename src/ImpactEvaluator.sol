@@ -102,7 +102,7 @@ contract ImpactEvaluator is AccessControl, Balances {
         if (block.number >= currentRoundEndBlockNumber) {
             advanceRound();
         }
-        transferScheduled();
+        balanceHeld -= transferScheduled();
     }
 
     function addMeasurements(
@@ -151,7 +151,6 @@ contract ImpactEvaluator is AccessControl, Balances {
 
     function releaseRewards() public onlyAdmin {
         _releaseRewards();
-        balanceHeld -= transferScheduled();
     }
 
     function availableBalance() public view returns (uint) {
