@@ -41,6 +41,10 @@ will be called and the round finishes.
 
 ### `.releaseRewards()`
 
+### `.withdraw()`
+
+### `.disableWithdraw()`
+
 ## Getters / Views
 
 ### `.currentRoundIndex() -> uint`
