@@ -1,15 +1,5 @@
-name: Tests
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-    paths: ["contract-utils/**", ".github/workflows/cli.yaml"]
-env:
-  CARGO_TERM_COLOR: always
-
+name: CI
+on: [push]
 jobs:
   build:
     runs-on: macos-latest
