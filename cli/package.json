@@ -1,5 +1,7 @@
 {
   "name": "@meridian-ie/cli",
+  "version": "0.0.0",
+  "license": "(Apache-2.0 AND MIT)",
   "type": "module",
   "resolutions": {
     "@ledgerhq/hw-app-eth": "5.47.1",
