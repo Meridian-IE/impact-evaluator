@@ -1,5 +1,15 @@
-name: CI
-on: [push]
+name: Cargo
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths: ["contract-utils/**", ".github/workflows/cli.yaml"]
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
     runs-on: macos-latest
@@ -25,10 +35,3 @@ jobs:
         run: |
           cd contract-utils
           cargo test  -- --nocapture --test-threads 1
-  cli:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: cd cli && npm ci
-      - run: cd cli && npm test
