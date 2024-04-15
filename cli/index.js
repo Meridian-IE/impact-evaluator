@@ -8,7 +8,7 @@ const { RPC_URL = 'https://api.node.glif.io/rpc/v1' } = process.env
 
 const abi = JSON.parse(
   await fs.readFile(
-    fileURLToPath(new URL('../Abi.json', import.meta.url)),
+    fileURLToPath(new URL('./Abi.json', import.meta.url)),
     'utf8'
   )
 )
