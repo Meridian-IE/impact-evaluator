@@ -230,6 +230,30 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
+    function test_SetScoresAfterUpdateMinBalanceForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](2);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores = new uint[](2);
+        scores[0] = 1;
+        scores[1] = impactEvaluator.MAX_SCORE() - scores[0];
+
+        impactEvaluator.setScores(1, addresses, scores);
+        assert(!impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+
+        impactEvaluator.setMinBalanceForTransfer(0);
+        impactEvaluator.adminAdvanceRound();
+
+        impactEvaluator.setScores(2, addresses, scores);
+        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+    }
+
     function test_AdvanceRoundCleanUp() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
 
@@ -690,5 +714,20 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.withdraw(payable(vm.addr(1)));
 
         assertEq(vm.addr(1).balance, 0);
+    }
+
+    function test_ParticipantIsReadyForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        address payable[] memory addresses = new address payable[](2);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory balances = new uint[](2);
+        balances[0] = 50 ether;
+        balances[1] = 50 ether;
+        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+
+        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+        assert(impactEvaluator.participantIsReadyForTransfer(addresses[1]));
+        assert(!impactEvaluator.participantIsReadyForTransfer(payable(vm.addr(3))));
     }
 }

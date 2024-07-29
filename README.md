@@ -55,6 +55,8 @@ will be called and the round finishes.
 
 ### `.balanceOf(address account) view -> uint`
 
+### `.participantIsReadyForTransfer(address account) view -> bool`
+
 ## Roles
 
 ### `.EVALUATE_ROLE()`
