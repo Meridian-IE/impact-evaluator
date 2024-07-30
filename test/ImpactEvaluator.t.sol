@@ -230,7 +230,7 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
-    function test_SetScoresAfterUpdateMinBalanceForTransfer() public {
+    function test_SetScoresAfterDecreaseMinBalanceForTransfer() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
         vm.deal(payable(address(impactEvaluator)), 100 ether);
 
@@ -251,6 +251,29 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
 
         impactEvaluator.setScores(2, addresses, scores);
+        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+    }
+
+    function test_SetScoresAfterIncreaseMinBalanceForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](1);
+        addresses[0] = payable(vm.addr(1));
+        uint[] memory scores = new uint[](1);
+        scores[0] = impactEvaluator.MAX_SCORE();
+
+        impactEvaluator.setScores(1, addresses, scores);
+        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+
+        impactEvaluator.setMinBalanceForTransfer(200 ether);
+        impactEvaluator.adminAdvanceRound();
+
+        impactEvaluator.setScores(2, addresses, scores);
+        // Still ready for transfer, although now below the rewards threshold
         assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
     }
 
