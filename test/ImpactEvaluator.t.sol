@@ -250,6 +250,8 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setMinBalanceForTransfer(0);
         impactEvaluator.adminAdvanceRound();
 
+        scores[0] = 0;
+        scores[1] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(2, addresses, scores);
         assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
     }
@@ -272,7 +274,14 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setMinBalanceForTransfer(200 ether);
         impactEvaluator.adminAdvanceRound();
 
-        impactEvaluator.setScores(2, addresses, scores);
+        address payable[] memory addresses2 = new address payable[](2);
+        addresses2[0] = payable(vm.addr(1));
+        addresses2[1] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](2);
+        scores2[0] = 0;
+        scores2[1] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(2, addresses2, scores2);
+
         // Still ready for transfer, although now below the rewards threshold
         assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
     }
