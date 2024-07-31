@@ -305,12 +305,19 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
 
-        address payable[] memory addresses = new address payable[](2);
+        address payable[] memory addresses = new address payable[](3);
         addresses[0] = payable(vm.addr(1));
         addresses[1] = payable(vm.addr(2));
-        uint[] memory scores = new uint[](2);
-        scores[0] = impactEvaluator.MAX_SCORE();
+        addresses[2] = payable(vm.addr(3));
+        uint[] memory scores = new uint[](3);
+        // The minimum score required to be ready for transfer
+        scores[0] =
+            ((impactEvaluator.MAX_SCORE() *
+                impactEvaluator.minBalanceForTransfer()) /
+                impactEvaluator.roundReward()) +
+            1;
         scores[1] = 0;
+        scores[2] = impactEvaluator.MAX_SCORE() - scores[0];
 
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
@@ -323,34 +330,47 @@ contract ImpactEvaluatorTest is Test {
             false,
             "participant 1 is not ready"
         );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            true,
+            "participant 2 is ready"
+        );
 
-        impactEvaluator.setMinBalanceForTransfer(200 ether);
+        impactEvaluator.setMinBalanceForTransfer(1 ether);
         impactEvaluator.adminAdvanceRound();
 
-        address payable[] memory addresses2 = new address payable[](3);
+        address payable[] memory addresses2 = new address payable[](4);
         addresses2[0] = payable(vm.addr(1));
         addresses2[1] = payable(vm.addr(2));
-        addresses2[2] = payable(0x000000000000000000000000000000000000dEaD);
-        uint[] memory scores2 = new uint[](3);
+        addresses2[2] = payable(vm.addr(3));
+        addresses2[3] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](4);
         scores2[0] = 0;
         scores2[1] = 0;
-        scores2[2] = impactEvaluator.MAX_SCORE();
+        scores2[2] = 0;
+        scores2[3] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(2, addresses2, scores2);
 
         assertEq(
             impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
             true,
-            "participant 0 is still ready"
+            "participant 0 is still ready, although now below the threshold"
         );
         assertEq(
             impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
             false,
             "participant 1 is still not ready"
         );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            true,
+            "participant 2 is still ready"
+        );
 
         assertEq(impactEvaluator.readyForTransfer(0), vm.addr(1));
+        assertEq(impactEvaluator.readyForTransfer(1), vm.addr(3));
         vm.expectRevert();
-        impactEvaluator.readyForTransfer(1);
+        impactEvaluator.readyForTransfer(2);
     }
 
     function test_AdvanceRoundCleanUp() public {
@@ -595,18 +615,12 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE() / 2;
         scores[1] = impactEvaluator.MAX_SCORE() / 2;
         impactEvaluator.setScores(1, addresses, scores);
-        assertEq(
-            impactEvaluator.balanceHeld(),
-            100 ether
-        );
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
 
         impactEvaluator.adminAdvanceRound();
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         impactEvaluator.setScores(2, addresses, scores);
-        assertEq(
-            impactEvaluator.balanceHeld(),
-            100 ether
-        );
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
 
         impactEvaluator.releaseRewards();
         assertEq(impactEvaluator.balanceHeld(), 100 ether);
@@ -628,18 +642,12 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
-        assertEq(
-            impactEvaluator.availableBalance(),
-            0 ether
-        );
+        assertEq(impactEvaluator.availableBalance(), 0 ether);
 
         impactEvaluator.adminAdvanceRound();
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         impactEvaluator.setScores(2, addresses, scores);
-        assertEq(
-            impactEvaluator.availableBalance(),
-            0 ether
-        );
+        assertEq(impactEvaluator.availableBalance(), 0 ether);
 
         impactEvaluator.releaseRewards();
         assertEq(impactEvaluator.availableBalance(), 0);
@@ -756,9 +764,9 @@ contract ImpactEvaluatorTest is Test {
         balances[1] = 50 ether;
 
         vm.expectRevert("Sum of balances must match msg.value");
-        impactEvaluator.addBalances{ value: 0 }(addresses, balances);
+        impactEvaluator.addBalances{value: 0}(addresses, balances);
 
-        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
         assertEq(
             impactEvaluator.rewardsScheduledFor(addresses[0]),
             50 ether,
@@ -787,7 +795,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint[] memory balances = new uint[](2);
         balances[0] = 100 ether;
-        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
 
         impactEvaluator.withdraw(payable(vm.addr(1)));
 
@@ -823,10 +831,12 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory balances = new uint[](2);
         balances[0] = 50 ether;
         balances[1] = 50 ether;
-        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
 
         assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
         assert(impactEvaluator.participantIsReadyForTransfer(addresses[1]));
-        assert(!impactEvaluator.participantIsReadyForTransfer(payable(vm.addr(3))));
+        assert(
+            !impactEvaluator.participantIsReadyForTransfer(payable(vm.addr(3)))
+        );
     }
 }
