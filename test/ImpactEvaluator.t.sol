@@ -246,12 +246,12 @@ contract ImpactEvaluatorTest is Test {
 
         impactEvaluator.setScores(1, addresses, scores);
         assertEq(
-            impactEvaluator.participantIsReadyForTransfer(addresses[0]),
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
             false,
             "participant 0 is not ready"
         );
         assertEq(
-            impactEvaluator.participantIsReadyForTransfer(addresses[1]),
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
             true,
             "participant 1 is ready"
         );
@@ -269,15 +269,19 @@ contract ImpactEvaluatorTest is Test {
         scores2[2] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(2, addresses2, scores2);
         assertEq(
-            impactEvaluator.participantIsReadyForTransfer(addresses2[0]),
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
             true,
             "participant 0 is now ready"
         );
         assertEq(
-            impactEvaluator.participantIsReadyForTransfer(addresses2[1]),
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
             true,
             "participant 1 is still ready"
         );
+        assertEq(impactEvaluator.readyForTransfer(0), vm.addr(2));
+        assertEq(impactEvaluator.readyForTransfer(1), vm.addr(1));
+        vm.expectRevert();
+        impactEvaluator.readyForTransfer(2);
     }
 
     function test_SetScoresAfterIncreaseMinBalanceForTransfer() public {
