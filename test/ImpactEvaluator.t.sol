@@ -239,21 +239,45 @@ contract ImpactEvaluatorTest is Test {
 
         address payable[] memory addresses = new address payable[](2);
         addresses[0] = payable(vm.addr(1));
-        addresses[1] = payable(0x000000000000000000000000000000000000dEaD);
+        addresses[1] = payable(vm.addr(2));
         uint[] memory scores = new uint[](2);
         scores[0] = 1;
         scores[1] = impactEvaluator.MAX_SCORE() - scores[0];
 
         impactEvaluator.setScores(1, addresses, scores);
-        assert(!impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(addresses[0]),
+            false,
+            "participant 0 is not ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(addresses[1]),
+            true,
+            "participant 1 is ready"
+        );
 
         impactEvaluator.setMinBalanceForTransfer(0);
         impactEvaluator.adminAdvanceRound();
 
-        scores[0] = 0;
-        scores[1] = impactEvaluator.MAX_SCORE();
-        impactEvaluator.setScores(2, addresses, scores);
-        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+        address payable[] memory addresses2 = new address payable[](3);
+        addresses2[0] = payable(vm.addr(1));
+        addresses2[1] = payable(vm.addr(2));
+        addresses2[2] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](3);
+        scores2[0] = 0;
+        scores2[1] = 0;
+        scores2[2] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(2, addresses2, scores2);
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(addresses2[0]),
+            true,
+            "participant 0 is now ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(addresses2[1]),
+            true,
+            "participant 1 is still ready"
+        );
     }
 
     function test_SetScoresAfterIncreaseMinBalanceForTransfer() public {
