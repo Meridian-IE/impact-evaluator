@@ -305,27 +305,52 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.adminAdvanceRound();
         impactEvaluator.adminAdvanceRound();
 
-        address payable[] memory addresses = new address payable[](1);
+        address payable[] memory addresses = new address payable[](2);
         addresses[0] = payable(vm.addr(1));
-        uint[] memory scores = new uint[](1);
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory scores = new uint[](2);
         scores[0] = impactEvaluator.MAX_SCORE();
+        scores[1] = 0;
 
         impactEvaluator.setScores(1, addresses, scores);
-        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            true,
+            "participant 0 is ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            false,
+            "participant 1 is not ready"
+        );
 
         impactEvaluator.setMinBalanceForTransfer(200 ether);
         impactEvaluator.adminAdvanceRound();
 
-        address payable[] memory addresses2 = new address payable[](2);
+        address payable[] memory addresses2 = new address payable[](3);
         addresses2[0] = payable(vm.addr(1));
-        addresses2[1] = payable(0x000000000000000000000000000000000000dEaD);
-        uint[] memory scores2 = new uint[](2);
+        addresses2[1] = payable(vm.addr(2));
+        addresses2[2] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](3);
         scores2[0] = 0;
-        scores2[1] = impactEvaluator.MAX_SCORE();
+        scores2[1] = 0;
+        scores2[2] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(2, addresses2, scores2);
 
-        // Still ready for transfer, although now below the rewards threshold
-        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            true,
+            "participant 0 is still ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            false,
+            "participant 1 is still not ready"
+        );
+
+        assertEq(impactEvaluator.readyForTransfer(0), vm.addr(1));
+        vm.expectRevert();
+        impactEvaluator.readyForTransfer(1);
     }
 
     function test_AdvanceRoundCleanUp() public {
