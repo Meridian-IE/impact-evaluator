@@ -830,11 +830,11 @@ contract ImpactEvaluatorTest is Test {
         addresses[1] = payable(vm.addr(2));
         uint[] memory balances = new uint[](2);
         balances[0] = 50 ether;
-        balances[1] = 50 ether;
-        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
+        balances[1] = impactEvaluator.minBalanceForTransfer() / 2;
+        impactEvaluator.addBalances{value: balances[0] + balances[1]}(addresses, balances);
 
-        assert(impactEvaluator.participantIsReadyForTransfer(addresses[0]));
-        assert(impactEvaluator.participantIsReadyForTransfer(addresses[1]));
+        assert(impactEvaluator.participantIsReadyForTransfer(vm.addr(1)));
+        assert(!impactEvaluator.participantIsReadyForTransfer(vm.addr(2)));
         assert(
             !impactEvaluator.participantIsReadyForTransfer(payable(vm.addr(3)))
         );
