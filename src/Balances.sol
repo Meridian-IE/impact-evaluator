@@ -26,6 +26,15 @@ contract Balances {
         return scheduledForTransfer.length;
     }
 
+    function participantIsReadyForTransfer (address participant) public view returns (bool) {
+        for (uint i = 0; i < readyForTransfer.length; i++) {
+            if (readyForTransfer[i] == participant) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function increaseParticipantBalance(
         address payable participant,
         uint amount
@@ -33,9 +42,12 @@ contract Balances {
         uint oldBalance = balances[participant];
         uint newBalance = oldBalance + amount;
         balances[participant] = newBalance;
+        if (newBalance <= minBalanceForTransfer) {
+            return;
+        }
         if (
-            oldBalance <= minBalanceForTransfer &&
-            newBalance > minBalanceForTransfer
+            oldBalance <= minBalanceForTransfer
+            || !participantIsReadyForTransfer(participant)
         ) {
             readyForTransfer.push(participant);
         }

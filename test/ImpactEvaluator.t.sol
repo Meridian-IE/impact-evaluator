@@ -230,6 +230,149 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.setScores(0, addresses, scores);
     }
 
+    function test_SetScoresAfterDecreaseMinBalanceForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](3);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        addresses[2] = payable(vm.addr(3));
+        uint[] memory scores = new uint[](3);
+        scores[0] = 1;
+        scores[1] = impactEvaluator.MAX_SCORE() - scores[0];
+        scores[2] = 0;
+
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            false,
+            "participant 0 is not ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            true,
+            "participant 1 is ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            false,
+            "participant 2 is not ready"
+        );
+
+        impactEvaluator.setMinBalanceForTransfer(1);
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses2 = new address payable[](4);
+        addresses2[0] = payable(vm.addr(1));
+        addresses2[1] = payable(vm.addr(2));
+        addresses2[2] = payable(vm.addr(3));
+        addresses2[3] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](4);
+        scores2[0] = 0;
+        scores2[1] = 0;
+        scores2[2] = 0;
+        scores2[3] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(2, addresses2, scores2);
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            true,
+            "participant 0 is now ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            true,
+            "participant 1 is still ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            false,
+            "participant 2 is still not ready"
+        );
+        assertEq(impactEvaluator.readyForTransfer(0), vm.addr(2));
+        assertEq(impactEvaluator.readyForTransfer(1), vm.addr(1));
+        vm.expectRevert();
+        impactEvaluator.readyForTransfer(2);
+    }
+
+    function test_SetScoresAfterIncreaseMinBalanceForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        vm.deal(payable(address(impactEvaluator)), 100 ether);
+
+        impactEvaluator.adminAdvanceRound();
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses = new address payable[](3);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        addresses[2] = payable(vm.addr(3));
+        uint[] memory scores = new uint[](3);
+        // The minimum score required to be ready for transfer
+        scores[0] =
+            ((impactEvaluator.MAX_SCORE() *
+                impactEvaluator.minBalanceForTransfer()) /
+                impactEvaluator.roundReward()) +
+            1;
+        scores[1] = 0;
+        scores[2] = impactEvaluator.MAX_SCORE() - scores[0];
+
+        impactEvaluator.setScores(1, addresses, scores);
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            true,
+            "participant 0 is ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            false,
+            "participant 1 is not ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            true,
+            "participant 2 is ready"
+        );
+
+        impactEvaluator.setMinBalanceForTransfer(1 ether);
+        impactEvaluator.adminAdvanceRound();
+
+        address payable[] memory addresses2 = new address payable[](4);
+        addresses2[0] = payable(vm.addr(1));
+        addresses2[1] = payable(vm.addr(2));
+        addresses2[2] = payable(vm.addr(3));
+        addresses2[3] = payable(0x000000000000000000000000000000000000dEaD);
+        uint[] memory scores2 = new uint[](4);
+        scores2[0] = 0;
+        scores2[1] = 0;
+        scores2[2] = 0;
+        scores2[3] = impactEvaluator.MAX_SCORE();
+        impactEvaluator.setScores(2, addresses2, scores2);
+
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(1)),
+            true,
+            "participant 0 is still ready, although now below the threshold"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(2)),
+            false,
+            "participant 1 is still not ready"
+        );
+        assertEq(
+            impactEvaluator.participantIsReadyForTransfer(vm.addr(3)),
+            true,
+            "participant 2 is still ready"
+        );
+
+        assertEq(impactEvaluator.readyForTransfer(0), vm.addr(1));
+        assertEq(impactEvaluator.readyForTransfer(1), vm.addr(3));
+        vm.expectRevert();
+        impactEvaluator.readyForTransfer(2);
+    }
+
     function test_AdvanceRoundCleanUp() public {
         ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
 
@@ -472,18 +615,12 @@ contract ImpactEvaluatorTest is Test {
         scores[0] = impactEvaluator.MAX_SCORE() / 2;
         scores[1] = impactEvaluator.MAX_SCORE() / 2;
         impactEvaluator.setScores(1, addresses, scores);
-        assertEq(
-            impactEvaluator.balanceHeld(),
-            100 ether
-        );
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
 
         impactEvaluator.adminAdvanceRound();
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         impactEvaluator.setScores(2, addresses, scores);
-        assertEq(
-            impactEvaluator.balanceHeld(),
-            100 ether
-        );
+        assertEq(impactEvaluator.balanceHeld(), 100 ether);
 
         impactEvaluator.releaseRewards();
         assertEq(impactEvaluator.balanceHeld(), 100 ether);
@@ -505,18 +642,12 @@ contract ImpactEvaluatorTest is Test {
         uint[] memory scores = new uint[](1);
         scores[0] = impactEvaluator.MAX_SCORE();
         impactEvaluator.setScores(1, addresses, scores);
-        assertEq(
-            impactEvaluator.availableBalance(),
-            0 ether
-        );
+        assertEq(impactEvaluator.availableBalance(), 0 ether);
 
         impactEvaluator.adminAdvanceRound();
         addresses[0] = payable(0x000000000000000000000000000000000000dEaD);
         impactEvaluator.setScores(2, addresses, scores);
-        assertEq(
-            impactEvaluator.availableBalance(),
-            0 ether
-        );
+        assertEq(impactEvaluator.availableBalance(), 0 ether);
 
         impactEvaluator.releaseRewards();
         assertEq(impactEvaluator.availableBalance(), 0);
@@ -633,9 +764,9 @@ contract ImpactEvaluatorTest is Test {
         balances[1] = 50 ether;
 
         vm.expectRevert("Sum of balances must match msg.value");
-        impactEvaluator.addBalances{ value: 0 }(addresses, balances);
+        impactEvaluator.addBalances{value: 0}(addresses, balances);
 
-        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
         assertEq(
             impactEvaluator.rewardsScheduledFor(addresses[0]),
             50 ether,
@@ -664,7 +795,7 @@ contract ImpactEvaluatorTest is Test {
         addresses[0] = payable(vm.addr(1));
         uint[] memory balances = new uint[](2);
         balances[0] = 100 ether;
-        impactEvaluator.addBalances{ value: 100 ether }(addresses, balances);
+        impactEvaluator.addBalances{value: 100 ether}(addresses, balances);
 
         impactEvaluator.withdraw(payable(vm.addr(1)));
 
@@ -690,5 +821,22 @@ contract ImpactEvaluatorTest is Test {
         impactEvaluator.withdraw(payable(vm.addr(1)));
 
         assertEq(vm.addr(1).balance, 0);
+    }
+
+    function test_ParticipantIsReadyForTransfer() public {
+        ImpactEvaluator impactEvaluator = new ImpactEvaluator(address(this));
+        address payable[] memory addresses = new address payable[](2);
+        addresses[0] = payable(vm.addr(1));
+        addresses[1] = payable(vm.addr(2));
+        uint[] memory balances = new uint[](2);
+        balances[0] = 50 ether;
+        balances[1] = impactEvaluator.minBalanceForTransfer() / 2;
+        impactEvaluator.addBalances{value: balances[0] + balances[1]}(addresses, balances);
+
+        assert(impactEvaluator.participantIsReadyForTransfer(vm.addr(1)));
+        assert(!impactEvaluator.participantIsReadyForTransfer(vm.addr(2)));
+        assert(
+            !impactEvaluator.participantIsReadyForTransfer(payable(vm.addr(3)))
+        );
     }
 }
